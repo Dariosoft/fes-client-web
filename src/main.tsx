@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://api.friendly-e-shop.local';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://api.friendly-e-shop.test';
 
 function App() {
   return (
