@@ -1,7 +1,8 @@
 # AGENTS.md - client-web
 
 ## Proyecto
-Storefront público de Friendly E-Shop, construido como SPA con React 19, TypeScript estricto y Vite. Presenta catálogo y flujos de compra consumiendo desde el navegador las APIs de catálogo, pedidos y pagos.
+Storefront público de Friendly E-Shop, construido como SPA con React 19, TypeScript estricto y Vite. Presenta catálogo y flujos de compra consumiendo desde el navegador las APIs de catálogo, pedidos y pagos y cuenta.
+Es una aplicacion muy amigable con el usuario que permite hacer compras de manera sencilla, el look and feel debe transmitir modernidad y eficiencia. Debe verse como un E-commerce UI / Catálogo Digital.
 Se compila como contenido estático, usa `VITE_API_BASE_URL` en build time y nginx lo sirve en el puerto 8080.
 
 ## Comandos
