@@ -21,6 +21,8 @@ Se compila como contenido estático, usa `VITE_API_BASE_URL` en build time y ngi
 
 ## Reglas
 - Lee la skill `/vercel-react-best-practices` y la spec activa, si existe, antes de tocar código.
+- Usa `/feature-arch` al crear o mover features, módulos, APIs públicas o imports entre áreas de la aplicación.
+- Usa `/vercel-composition-patterns` al diseñar o refactorizar componentes reutilizables, props y propiedad del estado.
 - Para tareas visuales consulta también `/ui-ux-pro-max` y valida escritorio y móvil.
 - Este proyecto no contiene lógica de servidor ni secretos; toda variable `VITE_*` queda expuesta en el bundle.
 - Consume contratos públicos de `/catalog`, `/orders` y `/payments`; no acoples la UI a tablas o detalles internos.
@@ -31,6 +33,7 @@ Se compila como contenido estático, usa `VITE_API_BASE_URL` en build time y ngi
 - Preserva el fallback SPA y `/healthz` si modificas Docker o nginx; los manifiestos viven en `infra`.
 
 ## Al terminar cualquier tarea
+- Tras cambios no triviales de código de producción, aplica `/clean-code-guard` antes de finalizar.
 - Ejecuta `npm test`; incluye lint, typecheck y build de producción.
 - Prueba manualmente la vista afectada en tamaños móvil y escritorio.
 - Verifica estados de carga, vacío y error cuando cambies consumo de APIs.
