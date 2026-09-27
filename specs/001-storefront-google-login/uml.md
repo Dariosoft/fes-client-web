@@ -2,6 +2,8 @@
 
 Diagramas y prosa alineados al código de la rama `001/feat-storefront-google-login`.
 
+Los diagramas priorizan relaciones arquitectónicas y de flujo; no intentan listar cada import, tipo local o dependencia transitiva ya explicada por un hook, API client o componente dueño.
+
 ## 1. Árbol de features (as-built)
 
 `main.tsx` solo hace bootstrap (`StrictMode` + `createRoot`) e importa `styles.css` (Tailwind 4 + `@theme`). `app/App.tsx` no habla con la red: compone el escaparate y el chrome de sesión vía slot.
