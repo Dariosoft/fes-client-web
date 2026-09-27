@@ -1,0 +1,66 @@
+.session-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  max-width: 100%;
+}
+
+.session-notice {
+  margin: 0;
+  width: 100%;
+  color: var(--color-danger);
+  font-size: 0.95rem;
+}
+
+.signed-in-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.session-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.session-action {
+  min-height: var(--space-touch);
+  min-width: var(--space-touch);
+  padding: 0.75rem 1.1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.session-action:hover {
+  background: var(--color-fg);
+  color: #fff;
+}
+
+.session-action:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.session-action:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (max-width: 360px) {
+  .session-chrome,
+  .signed-in-actions {
+    justify-content: stretch;
+  }
+
+  .session-action {
+    width: 100%;
+  }
+}

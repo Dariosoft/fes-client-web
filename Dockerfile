@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-ARG VITE_API_BASE_URL=http://api.friendly-e-shop.test
+ARG VITE_API_BASE_URL=https://api.friendly-e-shop.duckdns.org
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm test
 FROM nginxinc/nginx-unprivileged:1.30.5-alpine3.24
