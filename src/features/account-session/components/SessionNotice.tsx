@@ -11,7 +11,11 @@ type SessionNoticeProps = {
 
 export function SessionNotice({ notice }: SessionNoticeProps) {
   return (
-    <p className="session-notice" role="alert" aria-live="polite">
+    <p
+      className="w-full rounded-xl border border-destructive bg-card px-3 py-2 text-sm text-destructive"
+      role="alert"
+      aria-live="polite"
+    >
       {NOTICE_COPY[notice]}
     </p>
   );

@@ -1,56 +1,26 @@
-:root {
-  --color-bg: #eff4eb;
-  --color-bg-accent: #dce8d4;
-  --color-fg: #17211b;
-  --color-brand: #477252;
-  --color-brand-strong: #2f4a38;
-  --color-muted: #4d5c53;
-  --color-surface: rgba(255, 255, 255, 0.55);
-  --color-border: #17211b;
-  --color-danger: #8a2f1f;
-  --color-focus: #17211b;
-  --font-body: 'Nunito Sans', ui-sans-serif, sans-serif;
-  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --space-touch: 44px;
-  --motion-fast: 180ms;
-}
+@import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  min-width: 320px;
+@theme {
+  --font-sans: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: Rubik, ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #059669;
+  --color-on-primary: #000000;
+  --color-secondary: #10b981;
+  --color-on-secondary: #0f172a;
+  --color-accent: #ea580c;
+  --color-on-accent: #000000;
+  --color-background: #ecfdf5;
+  --color-foreground: #064e3b;
+  --color-card: #ffffff;
+  --color-card-foreground: #064e3b;
+  --color-muted: #e8f1f3;
+  --color-muted-foreground: #475569;
+  --color-border: #a7f3d0;
+  --color-destructive: #dc2626;
+  --color-on-destructive: #ffffff;
+  --color-ring: #059669;
 }
 
 body {
-  margin: 0;
   min-width: 320px;
-  min-height: 100vh;
-  font-family: var(--font-body);
-  color: var(--color-fg);
-  background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, var(--color-bg-accent), transparent 55%),
-    linear-gradient(160deg, var(--color-bg) 0%, #e4eddf 48%, var(--color-bg) 100%);
-}
-
-#root {
-  min-height: 100vh;
-}
-
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }

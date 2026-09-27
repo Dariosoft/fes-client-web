@@ -25,15 +25,16 @@ export function SignedInActions({ name, onLogout }: SignedInActionsProps) {
   }
 
   return (
-    <div className="signed-in-actions">
-      <span className="session-name">{name}</span>
+    <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
+      <span className="text-sm font-semibold break-words">{name}</span>
       <button
         type="button"
-        className="session-action"
+        className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-foreground bg-card px-4 text-sm font-bold text-foreground transition-colors duration-200 ease-out hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none sm:w-auto"
         onClick={() => {
           void handleLogoutClick();
         }}
         disabled={isLoggingOut}
+        aria-busy={isLoggingOut}
       >
         Salir
       </button>
