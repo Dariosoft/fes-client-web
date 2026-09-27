@@ -4,9 +4,9 @@ Tareas pequeñas (≈20–30 min), en orden de dependencia. Cada una indica los 
 
 ## Semilla de arquitectura y config
 
-- [x] **T1.** Crear `src/shared/config/api-base-url.ts` con `getApiBaseUrl()` leyendo `VITE_API_BASE_URL` y fallback `http://api.friendly-e-shop.test`.  
+- [x] **T1.** Crear `src/shared/config/api-base-url.ts` con `getApiBaseUrl()` leyendo `VITE_API_BASE_URL` y fallback `https://api.friendly-e-shop.duckdns.org`.  
   **RF:** RF-8  
-  **Done when:** Un módulo exporta la base URL del entorno activo y, sin variable, usa el valor por defecto de Minikube.
+  **Done when:** Un módulo exporta la base URL del entorno activo y, sin variable, usa el valor por defecto DuckDNS.
 
 - [x] **T2.** Crear `src/app/App.tsx` (composición sin lógica de red) y reducir `src/main.tsx` a bootstrap StrictMode + `createRoot` montando `App`.  
   **RF:** RF-1, RF-9  
@@ -30,7 +30,7 @@ Tareas pequeñas (≈20–30 min), en orden de dependencia. Cada una indica los 
   **RF:** RF-6, RF-8  
   **Done when:** La función publica el logout con credenciales y no hardcodea hosts fuera de `getApiBaseUrl()`.
 
-- [x] **T7.** Implementar `features/account-session/lib/login-error-from-url.ts`: detectar el indicador de error del `return_to` (mismo parámetro que account-api) y limpiarlo con `history.replaceState`.  
+- [x] **T7.** Implementar `features/account-session/lib/login-error-from-url.ts`: detectar el indicador `login_error=1` del `return_to` (mismo parámetro que account-api) y limpiarlo con `history.replaceState`.  
   **RF:** RF-12  
   **Done when:** Con el indicador presente en `search`, la utilidad lo detecta y, tras leerlo, la URL queda sin ese parámetro; sin indicador, no altera el estado de error.
 
@@ -44,7 +44,7 @@ Tareas pequeñas (≈20–30 min), en orden de dependencia. Cada una indica los 
   **RF:** RF-11, RF-12  
   **Done when:** Cada aviso se anuncia de forma accesible y el copy coincide con «no se pudo comprobar la sesión» / «no se pudo entrar».
 
-- [x] **T10.** Crear `GuestActions.tsx`: CTA «Entrar con Google» que navega con `location.assign`/`href` a la URL de T5; visible solo sin sesión (incl. `unreachable` y fallo de login); sin Salir.  
+- [x] **T10.** Crear `GuestActions.tsx`: CTA «Entrar con Google» que navega con `location.assign` a la URL de T5; visible solo sin sesión (incl. `unreachable` y fallo de login); sin Salir.  
   **RF:** RF-2, RF-3  
   **Done when:** En estado visitante/unreachable se muestra Entrar; el clic navega a la URL de login Google con `return_to`; no aparece Salir.
 
@@ -68,13 +68,13 @@ Tareas pequeñas (≈20–30 min), en orden de dependencia. Cada una indica los 
 
 ## Estilos, accesibilidad y responsive
 
-- [x] **T15.** Evolucionar `styles.css` / CSS colocalizado a tokens `--color-*`, aspecto de e-commerce amigable, layout usable desde 320 px, `:focus-visible`, targets táctiles ≥ 44 px y `prefers-reduced-motion` si hay transiciones.  
+- [x] **T15.** Configurar Tailwind 4 (`tailwindcss` + `@tailwindcss/vite`) y tokens en `src/styles.css` (`@theme` / `--color-*` / tipografía); aspecto de e-commerce amigable, layout usable desde 320 px, `focus-visible`, targets táctiles ≥ 44 px y `motion-reduce` si hay transiciones. Sin CSS colocalizado por feature.  
   **RF:** RF-1, RF-9  
   **Done when:** En 320 px y escritorio no hay scroll horizontal por el chrome; foco visible en Entrar/Salir; textos de UI en español.
 
 ## Pruebas
 
-- [x] **T16.** Crear `src/test/setup.ts` (Testing Library + jest-dom) y tests de `build-google-login-url` + `get-session`/hook (anónimo, autenticado, red caída).  
+- [x] **T16.** Crear `src/test/setup.ts` (Testing Library + jest-dom) y tests de `build-google-login-url` + SessionChrome/hook (anónimo, autenticado, red caída).  
   **RF:** RF-2, RF-3, RF-4, RF-5, RF-8, RF-10, RF-11  
   **Done when:** `npm test` ejecuta esos casos en verde: Entrar sin Salir; nombre+Salir; aviso si sesión inalcanzable; URL de login con `return_to` encoded.
 

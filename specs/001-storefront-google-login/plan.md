@@ -1,20 +1,24 @@
 # Plan 001 — Storefront con entrada Google opcional
 
-Desglose técnico de `spec.md` para `client-web`. No implementa la feature; solo define cómo cubrirla respetando `AGENTS.md`, el código actual y las skills de planificación.
+Desglose técnico de `spec.md` para `client-web`, alineado al código as-built de la rama `001/feat-storefront-google-login`. Respeta `AGENTS.md` y las skills de planificación.
 
 ## 1. Objetivo del corte
 
-Convertir el shell estático actual (`src/main.tsx`) en un escaparate de comercio electrónico usable sin autenticación, con Entrar con Google y Salir opcionales, consumiendo solo los contratos públicos de cuenta (`/accounts/login/google`, `/accounts/session`, `/accounts/logout`) vía la URL base de API del entorno.
+Escaparate de comercio electrónico usable sin autenticación, con Entrar con Google y Salir opcionales, consumiendo solo los contratos públicos de cuenta (`/accounts/login/google`, `/accounts/session`, `/accounts/logout`) vía la URL base de API del entorno.
 
 Historias cubiertas: H1, H2, H3.
 
 ## 2. Estado actual del código
 
+Arquitectura del corte **ya implementada** en la rama:
+
 - SPA React 19 + TypeScript estricto + Vite; sin router ni librerías de datos.
-- `VITE_API_BASE_URL` tipada en `src/vite-env.d.ts`; fallback actual `http://api.friendly-e-shop.test` (alineado con RF-8).
-- UI mínima en `src/main.tsx` + `src/styles.css` (marca, titular, enlace a `/catalog`); no hay sesión ni acciones Entrar/Salir.
-- `vite.config.ts` apunta a `src/test/setup.ts` (aún ausente): habrá que crearlo al añadir tests.
-- Sin aliases `@/`; sin capas `app/` ni `features/`. Este corte introduce la semilla de arquitectura por features.
+- Capas `app/`, `shared/config/` y features `storefront-home` + `account-session` (API pública por `index.ts`; sin imports cruzados entre features).
+- `app/App.tsx` compone `<StorefrontPage sessionSlot={<SessionChrome />} />`; `main.tsx` solo bootstrap + `styles.css`.
+- `VITE_API_BASE_URL` tipada en `src/vite-env.d.ts`; `getApiBaseUrl()` con fallback `https://api.friendly-e-shop.duckdns.org` (también default de build en `Dockerfile`).
+- Estilos: Tailwind CSS 4 (`tailwindcss` + `@tailwindcss/vite` en `package.json`); tokens en `src/styles.css` vía `@theme`. Sin CSS colocalizado por feature.
+- Hook `useAccountSession`: `loading | anonymous | authenticated | unreachable`; avisos `session-unreachable` / `login-failed` (`login_error=1`).
+- Tests colocalizados + `src/test/setup.ts` (vitest + Testing Library). Queda pendiente la pasada manual de cierre (T18).
 
 ## 3. Skills a respetar al implementar
 
@@ -26,27 +30,28 @@ Historias cubiertas: H1, H2, H3.
 | `ui-ux-pro-max` | Aspecto de tienda/e-commerce; foco visible; teclado; avisos con `role="alert"`; targets táctiles ≥ 44px; responsive desde 320 px; sin catálogo ni compra (RF-9). |
 | `AGENTS.md` | Textos UI en español; código en inglés; no secretos ni client id de Google en el bundle; no hablar con panel-api ni Google directo; no añadir dependencias sin consulta previa. |
 
-**Dependencias:** no introducir TanStack Query, router ni SDKs de Google en este corte. La sesión es un único `GET`/`POST` con `fetch` y estado local del feature (YAGNI; `AGENTS.md` exige consultar antes de nuevas deps).
+**Dependencias de sesión:** no TanStack Query, router ni SDKs de Google. La sesión es un único `GET`/`POST` con `fetch` y estado local del feature.
 
-## 4. Arquitectura objetivo (semilla)
+**Dependencias de estilo (as-built):** `tailwindcss` y `@tailwindcss/vite` (v4.3.x) como devDependencies; plugin Vite de Tailwind; entry `src/styles.css` con `@import "tailwindcss"` y `@theme`.
+
+## 4. Arquitectura (as-built)
 
 ```text
 src/
 ├── main.tsx                          # bootstrap StrictMode + createRoot
 ├── vite-env.d.ts
-├── styles.css                        # tokens globales + layout de escaparate
+├── styles.css                        # Tailwind 4 + @theme (tokens / tipografía)
 ├── test/
 │   └── setup.ts                      # Testing Library + jest-dom
 ├── app/
 │   └── App.tsx                       # compone features; sin lógica de red
 ├── shared/
 │   └── config/
-│       └── api-base-url.ts           # lee VITE_API_BASE_URL + fallback Minikube
+│       └── api-base-url.ts           # VITE_API_BASE_URL + fallback DuckDNS
 └── features/
     ├── storefront-home/              # escaparate (sin catálogo ni compra)
     │   ├── components/
     │   │   └── StorefrontPage.tsx
-    │   ├── storefront-home.css       # estilos colocalizados si hacen falta
     │   └── index.ts                  # API pública
     └── account-session/              # sesión compartida vía account-api
         ├── api/
@@ -55,7 +60,7 @@ src/
         │   └── build-google-login-url.ts
         ├── components/
         │   ├── SessionChrome.tsx     # contenedor: carga sesión, orquesta UI
-        │   ├── GuestActions.tsx      # Entrar con Google (+ avisos)
+        │   ├── GuestActions.tsx      # Entrar con Google (+ avisos vía Notice)
         │   ├── SignedInActions.tsx   # nombre + Salir
         │   └── SessionNotice.tsx     # aviso breve accesible
         ├── hooks/
@@ -63,26 +68,27 @@ src/
         ├── lib/
         │   └── login-error-from-url.ts
         ├── types.ts
-        ├── account-session.css
         └── index.ts
 ```
 
 Reglas de importación:
 
 - `app` → features (solo `index.ts`) y `shared`.
-- `storefront-home` no importa `account-session` por rutas internas; recibe el chrome de sesión por composición desde `app` (props/`children`).
+- `storefront-home` no importa `account-session` por rutas internas; recibe el chrome de sesión por composición desde `app` (`sessionSlot`).
 - `account-session` no importa `storefront-home`.
 - `shared` solo genérico (config de base URL).
 
 **Cubre:** RF-1, RF-8, RF-9 (estructura que permite escaparate + chrome de auth sin catálogo).
 
+Ver también `uml.md` (árbol, composición y secuencias).
+
 ## 5. Configuración de API del entorno
 
 **Archivo:** `src/shared/config/api-base-url.ts`
 
-- Exportar `getApiBaseUrl(): string` = `import.meta.env.VITE_API_BASE_URL ?? 'http://api.friendly-e-shop.test'`.
-- Usar siempre esta función (o constante de módulo) al construir URLs de cuenta; no hardcodear hosts en componentes.
-- Docker ya inyecta `VITE_API_BASE_URL` en build (`Dockerfile`); no tocar manifiestos de `infra` en este repo.
+- Exportar `getApiBaseUrl(): string` = `import.meta.env.VITE_API_BASE_URL ?? 'https://api.friendly-e-shop.duckdns.org'`.
+- Usar siempre esta función al construir URLs de cuenta; no hardcodear hosts en componentes.
+- Docker inyecta `VITE_API_BASE_URL` en build (`Dockerfile`, mismo default DuckDNS); no tocar manifiestos de `infra` en este repo.
 
 **Cubre:** RF-8.
 
@@ -117,7 +123,7 @@ En UI con sesión válida se muestra **solo** `name` (RF-10); `email`/`id` se ti
 
 - Construir `GET {apiBase}/accounts/login/google?return_to={encodeURIComponent(origen)}`.
 - `origen` = `window.location.origin` de la tienda (no inventar hosts).
-- En `GuestActions`, el CTA navega con asignación de ubicación (`window.location.assign` / `href`); no hay llamada XHR a Google ni client id en el bundle.
+- En `GuestActions`, el CTA navega con `window.location.assign`; no hay llamada XHR a Google ni client id en el bundle.
 
 **Cubre:** RF-2, RF-3.
 
@@ -127,7 +133,7 @@ En UI con sesión válida se muestra **solo** `name` (RF-10); `email`/`id` se ti
 
 - `POST {apiBase}/accounts/logout` con `credentials: 'include'`.
 - Tras éxito (respuesta OK según contrato), el hook pasa a `anonymous`, limpia `account` y deja de mostrar Salir/nombre.
-- Si el POST falla, este corte de la spec de tienda no define un aviso de fallo de logout (a diferencia de panel-web); mantener sesión visible y no inventar requisitos. Documentar en implementación: reintentar o dejar estado autenticado hasta éxito (mínimo: no fingir salida si el POST falló).
+- Si el POST falla, no fingir salida: mantener sesión visible hasta éxito.
 
 **Cubre:** RF-5, RF-6, RF-7.
 
@@ -135,9 +141,8 @@ En UI con sesión válida se muestra **solo** `name` (RF-10); `email`/`id` se ti
 
 `login-error-from-url.ts`:
 
-- Al montar, inspeccionar `window.location.search` por el indicador de error que account-api añade al `return_to` cuando Google falla/cancela (account-api RF-10; client-web RF-12).
-- Nombre del parámetro: el del contrato público de account-api (consumir el mismo que publique ese servicio; no inventar un canal paralelo ni hablar con Google).
-- Si el indicador está presente **y** la sesión resultante no es válida → estado visitante + aviso «No se pudo entrar» (texto en español).
+- Al montar, inspeccionar `window.location.search` por `login_error=1` (mismo indicador que account-api añade al `return_to`).
+- Si el indicador está presente **y** la sesión resultante no es válida → estado visitante/unreachable + aviso «No se pudo entrar».
 - Tras leer el indicador, limpiarlo de la URL con `history.replaceState` para no remostrar el aviso en refrescos.
 
 **Cubre:** RF-12 (y refuerza RF-2, RF-11 en el mismo shell usable).
@@ -146,9 +151,9 @@ En UI con sesión válida se muestra **solo** `name` (RF-10); `email`/`id` se ti
 
 ### 7.1 Página de tienda (`storefront-home`)
 
-- Sustituir el enlace «Comprobar catálogo» como foco principal: hero de escaparate Friendly E-Shop (marca visible, un titular, una frase de apoyo) sin listado de productos ni flujo de compra.
-- Layout semántico: `header` (marca + slot de sesión) + `main` (mensaje de tienda).
-- Mantener el carácter amigable/moderno del CSS actual (verdes, tipografía expresiva), evolucionándolo a tokens CSS (`--color-*`) sin rediseño ajeno a la marca ni catálogo.
+- Hero de escaparate Friendly E-Shop (marca visible, titular, frase de apoyo) sin listado de productos ni flujo de compra.
+- Layout semántico: `header` (marca + `sessionSlot`) + `main` (mensaje de tienda).
+- Estilos vía clases Tailwind y tokens `@theme` en `styles.css` (verdes, tipografía expresiva Rubik / Nunito Sans).
 
 **Cubre:** RF-1, RF-9.
 
@@ -162,9 +167,9 @@ En `app/App.tsx`:
 />
 ```
 
-- `GuestActions`: botón/enlace «Entrar con Google» visible solo sin sesión (incl. `unreachable` y fallo de login). No mostrar Salir.
+- `GuestActions`: botón «Entrar con Google» visible solo sin sesión (incl. `unreachable` y fallo de login). No mostrar Salir.
 - `SignedInActions`: texto con **solo el nombre** + control «Salir». No mostrar Entrar.
-- Mientras `loading`: no bloquear el escaparate; el chrome puede omitir acciones o mostrar un estado neutro no modal (la página sigue usable — RF-1).
+- Mientras `loading`: no bloquear el escaparate; el chrome omite acciones (página usable — RF-1).
 - `SessionNotice`: avisos breves con `role="alert"` / `aria-live="polite"` para:
   - no se pudo comprobar la sesión (RF-11);
   - no se pudo entrar (RF-12).
@@ -173,10 +178,10 @@ En `app/App.tsx`:
 
 ### 7.3 Accesibilidad y responsive (NFR)
 
-- Controles operables por teclado; foco visible (`:focus-visible`).
-- Ancho mínimo 320 px; acciones en cabecera que no provoquen scroll horizontal.
+- Controles operables por teclado; foco visible (`focus-visible`).
+- Ancho mínimo 320 px (`body { min-width: 320px }`); acciones en cabecera sin scroll horizontal.
 - Textos de interfaz en español: «Entrar con Google», «Salir», avisos acordados.
-- `prefers-reduced-motion` si se añaden transiciones (150–300 ms).
+- `motion-reduce` / `prefers-reduced-motion` en transiciones del CTA.
 
 ## 8. Flujos (resumen)
 
@@ -187,16 +192,16 @@ En `app/App.tsx`:
 | Carga sesión falla | Escaparate + Entrar + aviso breve | RF-1, RF-2, RF-4, RF-11 |
 | Clic Entrar | Navegación a login Google con `return_to` = origin | RF-3, RF-8 |
 | Retorno Google OK | Cookie compartida; `GET /accounts/session` → autenticado | RF-4, RF-5, RF-10 |
-| Retorno Google con indicador de error | Visitante + Entrar + aviso no se pudo entrar | RF-2, RF-12 |
+| Retorno Google con `login_error=1` | Visitante + Entrar + aviso no se pudo entrar | RF-2, RF-12 |
 | Clic Salir OK | `POST /accounts/logout` → estado anónimo en tienda | RF-6, RF-7 |
 
 ## 9. Pruebas
 
-Crear `src/test/setup.ts` y tests colocalizados (vitest + Testing Library, ya en `package.json`):
+`src/test/setup.ts` y tests colocalizados (vitest + Testing Library):
 
 | Prueba | Qué verifica | RFs |
 | --- | --- | --- |
-| `get-session` / hook: mock 200 `authenticated: false` | Muestra Entrar, no Salir | RF-2, RF-4 |
+| hook / SessionChrome: mock 200 `authenticated: false` | Muestra Entrar, no Salir | RF-2, RF-4 |
 | mock 200 con `name` | Muestra nombre + Salir, no Entrar | RF-5, RF-10 |
 | mock red caída / 5xx | Página usable + Entrar + aviso sesión | RF-11 |
 | `build-google-login-url` | URL = `{base}/accounts/login/google?return_to=...` encoded | RF-3, RF-8 |
@@ -204,9 +209,7 @@ Crear `src/test/setup.ts` y tests colocalizados (vitest + Testing Library, ya en
 | logout éxito | Tras POST OK, UI anónima | RF-6, RF-7 |
 | `StorefrontPage` | Sin catálogo/compra; aspecto de tienda | RF-1, RF-9 |
 
-Integración ligera en capa `app` con `fetch` mockeado (no E2E obligatorio en este plan).
-
-Comandos de cierre (post-implementación): `npm test` (unit + lint + build).
+Comandos de cierre: `npm test` (unit + lint + build). Pasada manual: T18.
 
 ## 10. Fuera de alcance (no planificar implementación)
 
@@ -216,15 +219,15 @@ Comandos de cierre (post-implementación): `npm test` (unit + lint + build).
 - Keycloak u otros IdP.
 - Cambios en `infra` / nginx salvo que el fallback SPA/`/healthz` se rompa (no debería tocarse).
 
-## 11. Orden sugerido de implementación
+## 11. Orden de implementación (histórico)
 
-1. Semilla `app/` + `shared/config` + mover bootstrap (`RF-8`).
+1. Semilla `app/` + `shared/config` + bootstrap (`RF-8`).
 2. Feature `account-session`: tipos, API, hook, URL de login, lectura de indicador (`RF-3`, `RF-4`, `RF-6`, `RF-12`).
 3. Componentes Guest / SignedIn / Notice (`RF-2`, `RF-5`, `RF-10`, `RF-11`).
 4. Feature `storefront-home` + composición en `App` (`RF-1`, `RF-9`).
-5. Estilos/accesibilidad NFR.
+5. Estilos Tailwind `@theme` / accesibilidad NFR.
 6. Tests + `src/test/setup.ts`.
-7. Verificación manual móvil/escritorio según criterios de finalización de la spec.
+7. Verificación manual móvil/escritorio (T18 pendiente).
 
 ## 12. Matriz RF → secciones del plan
 
