@@ -9,7 +9,18 @@ export function StorefrontPage({ sessionSlot, children }: StorefrontPageProps) {
   return (
     <div className="min-h-dvh bg-background font-sans text-foreground">
       <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-4 border-b-4 border-foreground bg-card px-4 py-3 md:px-8">
-        <p className="font-display text-lg font-semibold tracking-tight text-primary">Friendly E-Shop</p>
+        <div className="flex items-center gap-3">
+          <svg className="size-11 shrink-0" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="10" className="fill-primary" />
+            <path
+              className="fill-accent"
+              d="M7 18c1.7 2.6 3.4 2.6 5.1 0 1.7 2.6 3.4 2.6 5.1 0 1.7 2.6 3.4 2.6 5.1 0 1.7 2.6 3.4 2.6 5.1 0 1.7 2.6 3.4 2.6 5.1 0V21H7z"
+            />
+            <rect x="10" y="21" width="20" height="12" rx="1.5" className="fill-on-primary" />
+            <rect x="18" y="25" width="4" height="8" className="fill-primary" />
+          </svg>
+          <p className="font-display text-lg font-semibold tracking-tight text-primary">Friendly E-Shop</p>
+        </div>
         {sessionSlot ? (
           <div className="w-full min-w-0 sm:w-auto sm:max-w-md">{sessionSlot}</div>
         ) : null}
