@@ -20,7 +20,7 @@ La tienda pública debe presentarse como un escaparate de comercio electrónico 
 - RF-5: MIENTRAS el visitante tenga sesión de cuenta, EL SISTEMA ofrecerá la acción Salir.
 - RF-6: CUANDO el visitante elige Salir, EL SISTEMA solicitará `POST {URL base de API del entorno}/accounts/logout` con credenciales.
 - RF-7: CUANDO Salir se completa con éxito, EL SISTEMA tratará al visitante como sin sesión en la tienda.
-- RF-8: EL SISTEMA usará la URL base de API del entorno activo; en Minikube el valor por defecto es `http://api.friendly-e-shop.test`.
+- RF-8: EL SISTEMA usará `VITE_API_BASE_URL` del entorno activo y, cuando no esté definida, el fallback `https://api.friendly-e-shop.duckdns.org`.
 - RF-9: EL SISTEMA presentará en este corte la página con aspecto de tienda y las acciones Entrar y Salir, sin catálogo ni compra.
 - RF-10: MIENTRAS el visitante tenga sesión de cuenta, EL SISTEMA mostrará solo el nombre de la persona, junto a Salir.
 - RF-11: SI la consulta de sesión falla o no responde, ENTONCES EL SISTEMA mantendrá la página usable, mostrará Entrar y un aviso breve de que no se pudo comprobar la sesión.
@@ -31,6 +31,7 @@ La tienda pública debe presentarse como un escaparate de comercio electrónico 
 - Interfaz usable en anchos desde 320 px, con HTML semántico, foco visible y navegación por teclado.
 - Aspecto de escaparate de comercio electrónico / catálogo digital, alineado con el carácter amigable, moderno y eficiente del producto.
 - No se expone ni se inventa lógica de servidor ni secretos en el cliente; solo se consumen contratos públicos de cuenta según lo anterior.
+- La tienda funciona como SPA: el chrome global permanece montado y la vista activa se renderiza dentro del layout del router.
 
 ## Casos límite
 - SI la consulta de sesión falla o no responde, ENTONCES la página sigue usable, se muestra Entrar y un aviso breve (RF-11).

@@ -1,7 +1,8 @@
-import { getApiBaseUrl } from '../../../shared/config/api-base-url';
+import { getApiBaseUrl } from '../../../config/api-base-url';
+import { ACCOUNT_PATHS } from '../constants';
 
 export async function postLogout(): Promise<void> {
-  const response = await fetch(`${getApiBaseUrl()}/accounts/logout`, {
+  const response = await fetch(`${getApiBaseUrl()}${ACCOUNT_PATHS.logout}`, {
     method: 'POST',
     credentials: 'include',
   });

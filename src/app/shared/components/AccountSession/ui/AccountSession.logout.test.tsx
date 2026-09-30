@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SessionChrome } from './SessionChrome';
+import { AccountSession } from './AccountSession';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -10,7 +10,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-describe('session chrome login error and logout', () => {
+describe('AccountSession login error and logout', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
@@ -22,7 +22,7 @@ describe('session chrome login error and logout', () => {
     window.history.replaceState(null, '', '/?login_error=1');
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ authenticated: false }));
 
-    render(<SessionChrome />);
+    render(<AccountSession />);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo entrar.');
     expect(screen.getByRole('button', { name: 'Entrar con Google' })).toBeInTheDocument();
@@ -44,7 +44,7 @@ describe('session chrome login error and logout', () => {
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
 
     const user = userEvent.setup();
-    render(<SessionChrome />);
+    render(<AccountSession />);
 
     expect(await screen.findByText('Ana')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Salir' }));

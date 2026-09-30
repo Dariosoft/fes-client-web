@@ -1,4 +1,5 @@
-import { getApiBaseUrl } from '../../../shared/config/api-base-url';
+import { getApiBaseUrl } from '../../../config/api-base-url';
+import { ACCOUNT_PATHS } from '../constants';
 import type { AccountSessionResponse } from '../types';
 
 function isAccountSessionResponse(value: unknown): value is AccountSessionResponse {
@@ -21,7 +22,7 @@ function isAccountSessionResponse(value: unknown): value is AccountSessionRespon
 }
 
 export async function getSession(): Promise<AccountSessionResponse> {
-  const response = await fetch(`${getApiBaseUrl()}/accounts/session`, {
+  const response = await fetch(`${getApiBaseUrl()}${ACCOUNT_PATHS.session}`, {
     credentials: 'include',
   });
 

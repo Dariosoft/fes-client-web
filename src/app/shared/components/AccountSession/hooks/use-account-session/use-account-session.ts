@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
-import { getSession } from '../api/get-session';
-import { postLogout } from '../api/post-logout';
-import { consumeLoginErrorFromUrl } from '../lib/login-error-from-url';
-import type { AccountSessionResponse } from '../types';
+import { getSession } from '../../../../api/account/get-session/get-session';
+import { postLogout } from '../../../../api/account/post-logout/post-logout';
+import type { AccountSessionResponse } from '../../../../api/account/types';
+import {
+  SESSION_NOTICE,
+  SESSION_STATUS,
+  type SessionNotice,
+  type SessionStatus,
+} from '../../constants';
+import { consumeLoginErrorFromUrl } from '../../lib/login-error-from-url/login-error-from-url';
 
-export type SessionStatus = 'loading' | 'anonymous' | 'authenticated' | 'unreachable';
-
-export type SessionNotice = 'session-unreachable' | 'login-failed';
+export type { SessionNotice, SessionStatus } from '../../constants';
 
 export type AuthenticatedAccount = Extract<AccountSessionResponse, { authenticated: true }>;
 
@@ -18,7 +22,7 @@ export type AccountSessionState = {
 };
 
 export function useAccountSession(): AccountSessionState {
-  const [status, setStatus] = useState<SessionStatus>('loading');
+  const [status, setStatus] = useState<SessionStatus>(SESSION_STATUS.loading);
   const [account, setAccount] = useState<AuthenticatedAccount | null>(null);
   const [notice, setNotice] = useState<SessionNotice | null>(null);
 
@@ -37,22 +41,24 @@ export function useAccountSession(): AccountSessionState {
 
         if (session.authenticated) {
           setAccount(session);
-          setStatus('authenticated');
+          setStatus(SESSION_STATUS.authenticated);
           setNotice(null);
           return;
         }
 
         setAccount(null);
-        setStatus('anonymous');
-        setNotice(hadLoginError ? 'login-failed' : null);
+        setStatus(SESSION_STATUS.anonymous);
+        setNotice(hadLoginError ? SESSION_NOTICE.loginFailed : null);
       } catch {
         if (cancelled) {
           return;
         }
 
         setAccount(null);
-        setStatus('unreachable');
-        setNotice(hadLoginError ? 'login-failed' : 'session-unreachable');
+        setStatus(SESSION_STATUS.unreachable);
+        setNotice(
+          hadLoginError ? SESSION_NOTICE.loginFailed : SESSION_NOTICE.sessionUnreachable,
+        );
       }
     }
 
@@ -66,7 +72,7 @@ export function useAccountSession(): AccountSessionState {
   async function logout(): Promise<void> {
     await postLogout();
     setAccount(null);
-    setStatus('anonymous');
+    setStatus(SESSION_STATUS.anonymous);
     setNotice(null);
   }
 

@@ -1,4 +1,4 @@
-import { buildGoogleLoginUrl } from '../api/build-google-login-url';
+import { buildGoogleLoginUrl } from '../../../api/account/build-google-login-url/build-google-login-url';
 
 export function GuestActions() {
   function handleLoginClick() {

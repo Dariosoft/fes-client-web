@@ -1,6 +1,6 @@
-import { SessionChrome } from '../features/account-session';
-import { StorefrontPage } from '../features/storefront-home';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './routes';
 
 export function App() {
-  return <StorefrontPage sessionSlot={<SessionChrome />} />;
+  return <RouterProvider router={router} />;
 }

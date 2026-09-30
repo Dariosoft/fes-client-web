@@ -1,89 +1,77 @@
 # Tasks 001 — Storefront con entrada Google opcional
 
-Tareas pequeñas (≈20–30 min), en orden de dependencia. Cada una indica los RF que cubre y un criterio verificable «Done when:».
+Estado as-built de la implementación. Las rutas indican la ubicación actual de cada responsabilidad.
 
-## Semilla de arquitectura y config
+## Base SPA
 
-- [x] **T1.** Crear `src/shared/config/api-base-url.ts` con `getApiBaseUrl()` leyendo `VITE_API_BASE_URL` y fallback `https://api.friendly-e-shop.duckdns.org`.  
-  **RF:** RF-8  
-  **Done when:** Un módulo exporta la base URL del entorno activo y, sin variable, usa el valor por defecto DuckDNS.
+- [x] **T1.** Mantener `src/main.tsx` como bootstrap y `src/app/App.tsx` como montaje de `RouterProvider`.
+  **RF:** RF-1, RF-9
+  **Done when:** `main.tsx` no contiene UI de negocio ni red y `App` solo monta el router.
 
-- [x] **T2.** Crear `src/app/App.tsx` (composición sin lógica de red) y reducir `src/main.tsx` a bootstrap StrictMode + `createRoot` montando `App`.  
-  **RF:** RF-1, RF-9  
-  **Done when:** La SPA arranca desde `App` y el shell deja de concentrar UI y red en `main.tsx`.
+- [x] **T2.** Definir en `src/app/routes.tsx` un `Layout` padre y `Storefront` como index route.
+  **RF:** RF-1, RF-9
+  **Done when:** `/` renderiza `Storefront` dentro del `<Outlet />` de `Layout`.
 
-## Feature account-session — contratos y datos
+## Vistas
 
-- [x] **T3.** Crear `features/account-session/types.ts` con `AccountSessionResponse` (`authenticated: false` | `authenticated: true` + `id`, `email`, `name`) y exportar la API pública en `index.ts` (esqueleto).  
-  **RF:** RF-4, RF-10  
-  **Done when:** Los tipos públicos de sesión están tipados y el feature expone un `index.ts` sin imports cruzados hacia `storefront-home`.
+- [x] **T3.** Implementar `app/views/Layout/Layout.tsx` con header global, `/favicon.svg`, `AccountSession` y `<Outlet />`.
+  **RF:** RF-1, RF-2, RF-5
+  **Done when:** el chrome permanece fuera de la vista routeada y rodea el contenido activo.
 
-- [x] **T4.** Implementar `features/account-session/api/get-session.ts`: `GET {apiBase}/accounts/session` con `credentials: 'include'`, usando `getApiBaseUrl()`.  
-  **RF:** RF-4, RF-8  
-  **Done when:** La función llama al contrato de sesión con credenciales y construye la URL solo desde la config compartida.
+- [x] **T4.** Implementar `app/views/Storefront/Storefront.tsx` como vista index, sin catálogo ni compra.
+  **RF:** RF-1, RF-9
+  **Done when:** la vista muestra el escaparate inicial y no contiene header ni sesión duplicados.
 
-- [x] **T5.** Implementar `features/account-session/api/build-google-login-url.ts`: `{apiBase}/accounts/login/google?return_to=` con `encodeURIComponent` del `origin` de la tienda.  
-  **RF:** RF-3, RF-8  
-  **Done when:** Dado un origin de prueba, la URL resultante apunta al login Google del entorno con `return_to` correctamente codificado.
+## Configuración y contratos
 
-- [x] **T6.** Implementar `features/account-session/api/post-logout.ts`: `POST {apiBase}/accounts/logout` con `credentials: 'include'`.  
-  **RF:** RF-6, RF-8  
-  **Done when:** La función publica el logout con credenciales y no hardcodea hosts fuera de `getApiBaseUrl()`.
+- [x] **T5.** Resolver `VITE_API_BASE_URL` en `app/shared/config/api-base-url.ts` con fallback DuckDNS.
+  **RF:** RF-8
+  **Done when:** ningún componente hardcodea el host de API.
 
-- [x] **T7.** Implementar `features/account-session/lib/login-error-from-url.ts`: detectar el indicador `login_error=1` del `return_to` (mismo parámetro que account-api) y limpiarlo con `history.replaceState`.  
-  **RF:** RF-12  
-  **Done when:** Con el indicador presente en `search`, la utilidad lo detecta y, tras leerlo, la URL queda sin ese parámetro; sin indicador, no altera el estado de error.
+- [x] **T6.** Centralizar paths, parámetros y DTOs del dominio de cuenta en `app/shared/api/account/`; mantener estados y avisos de UI en `AccountSession/constants.ts`.
+  **RF:** RF-3, RF-4, RF-6, RF-11, RF-12
+  **Done when:** contratos externos están namespaced en shared API y los estados de presentación permanecen junto a AccountSession.
 
-- [x] **T8.** Implementar `hooks/use-account-session.ts`: al montar consulta sesión una vez; estados `loading | anonymous | authenticated | unreachable`; aplica indicador de error de URL cuando no hay sesión válida.  
-  **RF:** RF-4, RF-11, RF-12  
-  **Done when:** Mock 200 anónimo → `anonymous`; 200 con nombre → `authenticated`; red/5xx → `unreachable`; indicador de error + sin sesión → aviso de fallo de entrada sin tumbar la página.
+- [x] **T7.** Implementar y probar `shared/api/account/get-session/`: GET con credenciales, validación de respuesta y errores.
+  **RF:** RF-4, RF-8, RF-11
+  **Done when:** acepta respuestas válidas y rechaza HTTP o payload inválido.
 
-## Feature account-session — UI del chrome
+- [x] **T8.** Implementar y probar `shared/api/account/build-google-login-url/` con `return_to` codificado.
+  **RF:** RF-3, RF-8
+  **Done when:** la URL usa el host configurado, path público y origen de tienda codificado.
 
-- [x] **T9.** Crear `SessionNotice.tsx` con textos en español, `role="alert"` / `aria-live="polite"` para avisos de sesión inalcanzable y de fallo al entrar.  
-  **RF:** RF-11, RF-12  
-  **Done when:** Cada aviso se anuncia de forma accesible y el copy coincide con «no se pudo comprobar la sesión» / «no se pudo entrar».
+- [x] **T9.** Implementar y probar `shared/api/account/post-logout/`: POST con credenciales y propagación de error.
+  **RF:** RF-6, RF-7, RF-8
+  **Done when:** un error no se interpreta como logout exitoso.
 
-- [x] **T10.** Crear `GuestActions.tsx`: CTA «Entrar con Google» que navega con `location.assign` a la URL de T5; visible solo sin sesión (incl. `unreachable` y fallo de login); sin Salir.  
-  **RF:** RF-2, RF-3  
-  **Done when:** En estado visitante/unreachable se muestra Entrar; el clic navega a la URL de login Google con `return_to`; no aparece Salir.
+- [x] **T10.** Implementar y probar `lib/login-error-from-url/` para consumir `login_error=1` y preservar otros parámetros.
+  **RF:** RF-12
+  **Done when:** limpia solo el indicador consumido mediante `history.replaceState`.
 
-- [x] **T11.** Crear `SignedInActions.tsx`: muestra solo el `name` y el control «Salir»; al éxito de `post-logout` el hook pasa a anónimo (si el POST falla, no fingir salida).  
-  **RF:** RF-5, RF-6, RF-7, RF-10  
-  **Done when:** Con sesión se ven nombre + Salir (sin Entrar ni email/id); tras POST OK la UI deja de tratar al visitante como autenticado.
+## Estado y UI compartida
 
-- [x] **T12.** Crear `SessionChrome.tsx` que orquesta el hook y las variantes Guest / SignedIn / Notice; en `loading` no bloquea el escaparate.  
-  **RF:** RF-1, RF-2, RF-5, RF-11  
-  **Done when:** El chrome elige la variante correcta según el estado y, mientras carga, la página del escaparate sigue usable sin modal bloqueante.
+- [x] **T11.** Implementar y probar `hooks/use-account-session/` con estados loading, anonymous, authenticated y unreachable.
+  **RF:** RF-4, RF-7, RF-11, RF-12
+  **Done when:** cubre hidratación, avisos, logout exitoso/fallido y cleanup de montaje.
 
-## Feature storefront-home y composición
+- [x] **T12.** Implementar `AccountSession/ui/` con `AccountSession`, `GuestActions`, `SignedInActions` y `SessionNotice`.
+  **RF:** RF-2, RF-3, RF-5, RF-10, RF-11, RF-12
+  **Done when:** cada estado muestra acciones mutuamente coherentes y avisos accesibles.
 
-- [x] **T13.** Crear `features/storefront-home` con `StorefrontPage.tsx` (header semántico + slot de sesión + main con hero de tienda) e `index.ts` público; sin catálogo ni compra.  
-  **RF:** RF-1, RF-9  
-  **Done when:** La página muestra marca, titular y frase de apoyo de escaparate; no hay listado de productos ni flujo de compra; acepta `sessionSlot`/`children` sin importar rutas internas de `account-session`.
+- [x] **T13.** Probar la UI de AccountSession, incluyendo error de login y logout exitoso.
+  **RF:** RF-2, RF-5, RF-6, RF-7, RF-10, RF-11, RF-12
+  **Done when:** los tests verifican Entrar, nombre, Salir y avisos según estado.
 
-- [x] **T14.** Componer en `App.tsx`: `<StorefrontPage sessionSlot={<SessionChrome />} />` importando solo APIs públicas de features.  
-  **RF:** RF-1, RF-2, RF-5, RF-9  
-  **Done when:** La app monta escaparate + chrome de sesión; no hay imports cruzados entre features por rutas internas.
+## Calidad
 
-## Estilos, accesibilidad y responsive
+- [x] **T14.** Mantener tests de Layout y Storefront junto a sus definiciones.
+  **RF:** RF-1, RF-9
+  **Done when:** se verifica chrome persistente y ausencia de catálogo/checkout.
 
-- [x] **T15.** Configurar Tailwind 4 (`tailwindcss` + `@tailwindcss/vite`) y tokens en `src/styles.css` (`@theme` / `--color-*` / tipografía); aspecto de e-commerce amigable, layout usable desde 320 px, `focus-visible`, targets táctiles ≥ 44 px y `motion-reduce` si hay transiciones. Sin CSS colocalizado por feature.  
-  **RF:** RF-1, RF-9  
-  **Done when:** En 320 px y escritorio no hay scroll horizontal por el chrome; foco visible en Entrar/Salir; textos de UI en español.
+- [x] **T15.** Ejecutar `npm test` y `npm audit --audit-level=moderate`.
+  **RF:** RF-1 a RF-12
+  **Done when:** unit, lint, build y audit pasan; actualmente 21 tests y 0 vulnerabilidades.
 
-## Pruebas
-
-- [x] **T16.** Crear `src/test/setup.ts` (Testing Library + jest-dom) y tests de `build-google-login-url` + SessionChrome/hook (anónimo, autenticado, red caída).  
-  **RF:** RF-2, RF-3, RF-4, RF-5, RF-8, RF-10, RF-11  
-  **Done when:** `npm test` ejecuta esos casos en verde: Entrar sin Salir; nombre+Salir; aviso si sesión inalcanzable; URL de login con `return_to` encoded.
-
-- [x] **T17.** Tests de `login-error-from-url` + logout exitoso + smoke de `StorefrontPage` (sin catálogo/compra).  
-  **RF:** RF-1, RF-6, RF-7, RF-9, RF-12  
-  **Done when:** Aviso «no se pudo entrar» con indicador + sesión anónima; tras POST logout OK la UI es anónima; la página de tienda no renderiza catálogo ni compra.
-
-## Verificación de cierre
-
-- [ ] **T18.** Pasada manual móvil/escritorio: tienda usable sin login; Entrar lleva al contrato con `return_to` al origin; carga consulta sesión con credenciales; Salir deja estado sin sesión; avisos RF-11/RF-12.  
-  **RF:** RF-1, RF-2, RF-3, RF-4, RF-5, RF-6, RF-7, RF-8, RF-9, RF-10, RF-11, RF-12  
-  **Done when:** Los criterios de finalización de la spec se demuestran a mano en ambos anchos y `npm test` (lint, typecheck, build) pasa.
+- [ ] **T16.** Realizar comprobación manual móvil/escritorio del flujo completo.
+  **RF:** RF-1 a RF-12
+  **Done when:** se demuestra carga anónima, login, retorno, sesión, logout y avisos desde 320 px y escritorio.

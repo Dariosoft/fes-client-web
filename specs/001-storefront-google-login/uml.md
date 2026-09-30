@@ -1,172 +1,146 @@
 # UML 001 — Storefront con entrada Google opcional
 
-Diagramas y prosa alineados al código de la rama `001/feat-storefront-google-login`.
+Diagramas alineados con la implementación actual de `client-web`.
 
-Los diagramas priorizan relaciones arquitectónicas y de flujo; no intentan listar cada import, tipo local o dependencia transitiva ya explicada por un hook, API client o componente dueño.
-
-## 1. Árbol de features (as-built)
-
-`main.tsx` solo hace bootstrap (`StrictMode` + `createRoot`) e importa `styles.css` (Tailwind 4 + `@theme`). `app/App.tsx` no habla con la red: compone el escaparate y el chrome de sesión vía slot.
+## Estructura
 
 ```text
-src/
-├── main.tsx
-├── styles.css                        # @import "tailwindcss" + @theme (tokens)
-├── vite-env.d.ts                     # VITE_API_BASE_URL?
-├── test/setup.ts
-├── app/
-│   └── App.tsx                       # StorefrontPage + sessionSlot={SessionChrome}
-├── shared/config/
-│   └── api-base-url.ts               # getApiBaseUrl(); fallback DuckDNS
-└── features/
-    ├── storefront-home/
-    │   ├── components/StorefrontPage.tsx
-    │   ├── components/StorefrontPage.test.tsx
-    │   └── index.ts
-    └── account-session/
-        ├── api/get-session.ts
-        ├── api/post-logout.ts
-        ├── api/build-google-login-url.ts
-        ├── hooks/use-account-session.ts
-        ├── lib/login-error-from-url.ts   # login_error=1
-        ├── components/SessionChrome.tsx
-        ├── components/GuestActions.tsx
-        ├── components/SignedInActions.tsx
-        ├── components/SessionNotice.tsx
-        ├── types.ts
-        └── index.ts                      # exporta SessionChrome (+ tipos)
+src/app/
+├── App.tsx
+├── routes.tsx
+├── views/
+│   ├── Layout/
+│   │   ├── Layout.tsx
+│   │   └── Layout.test.tsx
+│   └── Storefront/
+│       ├── Storefront.tsx
+│       └── Storefront.test.tsx
+└── shared/
+    ├── config/api-base-url.ts
+    ├── api/account/
+    │   ├── constants.ts
+    │   ├── types.ts
+    │   ├── get-session/
+    │   ├── post-logout/
+    │   └── build-google-login-url/
+    └── components/AccountSession/
+        ├── constants.ts
+        ├── ui/
+        │   ├── AccountSession.tsx
+        │   ├── GuestActions.tsx
+        │   ├── SignedInActions.tsx
+        │   └── SessionNotice.tsx
+        ├── hooks/use-account-session/
+        └── lib/login-error-from-url/
 ```
 
-**Base URL:** `getApiBaseUrl()` = `import.meta.env.VITE_API_BASE_URL ?? 'https://api.friendly-e-shop.duckdns.org'`. Todos los `fetch` y la URL de login Google pasan por esta función. No hay CSS colocalizado por feature: utilidades Tailwind en los componentes.
-
-## 2. Composición en App
+## Composición SPA
 
 ```mermaid
 flowchart TB
-  main["main.tsx<br/>StrictMode + createRoot"] --> App["app/App.tsx"]
-  App --> SP["StorefrontPage<br/>features/storefront-home"]
-  App --> SC["SessionChrome<br/>vía sessionSlot"]
-  SP -->|"sessionSlot en header"| SC
-  SC --> Hook["useAccountSession"]
-  Hook --> API["api: get-session / post-logout / build-google-login-url"]
-  API --> Base["getApiBaseUrl()<br/>VITE_API_BASE_URL o DuckDNS"]
-  Hook --> Lib["consumeLoginErrorFromUrl<br/>login_error=1"]
-  SC --> Guest["GuestActions"]
-  SC --> Signed["SignedInActions"]
-  SC --> Notice["SessionNotice"]
+  Main["main.tsx<br/>StrictMode + createRoot"] --> App["App<br/>RouterProvider"]
+  App --> Router["routes.tsx"]
+  Router --> Layout["Layout<br/>header + AccountSession + Outlet"]
+  Layout --> Storefront["Storefront<br/>index route"]
+  Layout --> Account["AccountSession"]
+  Account --> UI["ui<br/>Guest · SignedIn · Notice"]
+  Account --> Hook["useAccountSession"]
+  Hook --> API["shared/api/account"]
+  Hook --> Lib["consumeLoginErrorFromUrl"]
+  API --> Config["getApiBaseUrl"]
+  API --> Contract["paths · params · DTOs"]
+  Account --> Constants["states · notices"]
 ```
 
-## 3. Flujo de componentes (chrome)
+## Estados de sesión
 
 ```mermaid
-flowchart TD
-  Start([SessionChrome monta]) --> Load[useAccountSession: GET /accounts/session]
-  Load --> Status{status}
-  Status -->|loading| Idle[Escaparate usable; sin CTA]
-  Status -->|authenticated| Signed[SignedInActions: nombre + Salir]
-  Status -->|anonymous| Guest[GuestActions: Entrar con Google]
-  Status -->|unreachable| Unreach[GuestActions + SessionNotice sesión]
-  Load --> ErrURL{login_error=1<br/>y sin sesión válida?}
-  ErrURL -->|sí| LoginFail[SessionNotice: No se pudo entrar]
-  ErrURL -->|no| Skip[Sin aviso de login]
-  Signed -->|Salir OK| PostOut[POST /accounts/logout] --> Anon[anonymous]
-  Guest -->|clic| Nav[location.assign login Google]
+stateDiagram-v2
+  [*] --> loading
+  loading --> authenticated: sesión válida
+  loading --> anonymous: authenticated=false
+  loading --> unreachable: red, HTTP o JSON inválido
+  authenticated --> anonymous: logout exitoso
+  authenticated --> authenticated: logout fallido
+  anonymous --> anonymous: login_error consume aviso
+  unreachable --> unreachable: login_error prioriza aviso de entrada
 ```
 
-## 4. Secuencia — carga en frío (sesión OK anónima o autenticada)
+## Carga inicial
 
 ```mermaid
 sequenceDiagram
   actor U as Visitante
-  participant App as App / StorefrontPage
-  participant SC as SessionChrome
-  participant Hook as useAccountSession
+  participant L as Layout
+  participant AS as AccountSession
+  participant H as useAccountSession
+  participant URL as login-error-from-url
   participant API as account-api
 
-  U->>App: Abre la tienda
-  App->>SC: sessionSlot monta chrome
-  SC->>Hook: montaje
-  Hook->>Hook: consumeLoginErrorFromUrl (sin param)
-  Hook->>API: GET /accounts/session credentials include
-  alt authenticated false
-    API-->>Hook: { authenticated: false }
-    Hook-->>SC: anonymous
-    SC-->>U: Entrar con Google
-  else authenticated true
-    API-->>Hook: { authenticated, name, ... }
-    Hook-->>SC: authenticated + account
-    SC-->>U: nombre + Salir
+  U->>L: abre la SPA
+  L->>AS: monta chrome global
+  AS->>H: monta hook
+  H->>URL: consume login_error
+  URL-->>H: presente o ausente
+  H->>API: GET /accounts/session<br/>credentials include
+  alt sesión autenticada
+    API-->>H: authenticated true + identidad
+    H-->>AS: authenticated + account
+    AS-->>U: nombre + Salir
+  else sesión anónima
+    API-->>H: authenticated false
+    H-->>AS: anonymous
+    AS-->>U: Entrar con Google
+  else error
+    API-->>H: red / HTTP / JSON inválido
+    H-->>AS: unreachable + aviso
+    AS-->>U: Entrar + aviso
   end
-  Note over App,U: El escaparate no se bloquea durante loading
+  Note over L,U: Storefront permanece usable durante loading
 ```
 
-## 5. Secuencia — Entrar con Google
+## Entrar con Google
 
 ```mermaid
 sequenceDiagram
   actor U as Visitante
-  participant Guest as GuestActions
-  participant Build as buildGoogleLoginUrl
-  participant API as account-api / Google
-
-  U->>Guest: Clic «Entrar con Google»
-  Guest->>Build: buildGoogleLoginUrl(window.location.origin)
-  Build-->>Guest: {apiBase}/accounts/login/google?return_to=...
-  Guest->>API: location.assign(url)
-  Note over U,API: OAuth fuera del bundle; sin client id en client-web
-  API-->>U: Redirect a return_to (origin de la tienda)
-```
-
-## 6. Secuencia — retorno con `login_error=1`
-
-```mermaid
-sequenceDiagram
-  actor U as Visitante
-  participant Hook as useAccountSession
-  participant Lib as consumeLoginErrorFromUrl
+  participant G as GuestActions
+  participant B as buildGoogleLoginUrl
   participant API as account-api
-  participant UI as SessionChrome
 
-  U->>Hook: Carga con ?login_error=1
-  Hook->>Lib: consumeLoginErrorFromUrl()
-  Lib->>Lib: detecta login_error=1
-  Lib->>Lib: history.replaceState (limpia query)
-  Lib-->>Hook: true
-  Hook->>API: GET /accounts/session
-  API-->>Hook: authenticated false (o red falla)
-  Hook-->>UI: anonymous|unreachable + notice login-failed
-  UI-->>U: «No se pudo entrar.» + Entrar con Google
+  U->>G: clic Entrar con Google
+  G->>B: window.location.origin
+  B-->>G: apiBase + /accounts/login/google + return_to
+  G->>API: window.location.assign(url)
+  Note over U,API: OAuth ocurre fuera del bundle
+  API-->>U: redirect al origen de la tienda
 ```
 
-## 7. Secuencia — Salir
+## Salir
 
 ```mermaid
 sequenceDiagram
   actor U as Usuario
-  participant Signed as SignedInActions
-  participant Hook as useAccountSession
+  participant UI as SignedInActions
+  participant H as useAccountSession
   participant API as account-api
 
-  U->>Signed: Clic «Salir»
-  Signed->>Hook: logout()
-  Hook->>API: POST /accounts/logout credentials include
-  API-->>Hook: OK
-  Hook-->>Signed: status anonymous, account null
-  Note over U,Signed: Si el POST falla, no se finge salida
+  U->>UI: clic Salir
+  UI->>H: logout()
+  H->>API: POST /accounts/logout<br/>credentials include
+  alt respuesta OK
+    API-->>H: éxito
+    H-->>UI: anonymous + account null
+  else error
+    API-->>H: error
+    H-->>UI: conserva authenticated
+  end
 ```
 
-## 8. Secuencia — sesión inalcanzable
+## Contrato HTTP
 
-```mermaid
-sequenceDiagram
-  actor U as Visitante
-  participant Hook as useAccountSession
-  participant API as account-api
-  participant UI as SessionChrome
-
-  U->>Hook: Carga fría
-  Hook->>API: GET /accounts/session
-  API-->>Hook: red caída / no OK / JSON inválido
-  Hook-->>UI: unreachable + notice session-unreachable
-  UI-->>U: Escaparate usable + Entrar + «No se pudo comprobar la sesión.»
-```
+| Operación | Método | Path | Credenciales |
+| --- | --- | --- | --- |
+| Entrar con Google | GET por navegación | `/accounts/login/google?return_to=...` | Navegación completa |
+| Consultar sesión | GET | `/accounts/session` | `include` |
+| Salir | POST | `/accounts/logout` | `include` |

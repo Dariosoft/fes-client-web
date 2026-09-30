@@ -1,249 +1,194 @@
 # Plan 001 — Storefront con entrada Google opcional
 
-Desglose técnico de `spec.md` para `client-web`, alineado al código as-built de la rama `001/feat-storefront-google-login`. Respeta `AGENTS.md` y las skills de planificación.
+Plan técnico alineado al código actual de `client-web` en la rama `001/feat-storefront-google-login`.
 
-## 1. Objetivo del corte
+## Objetivo
 
-Escaparate de comercio electrónico usable sin autenticación, con Entrar con Google y Salir opcionales, consumiendo solo los contratos públicos de cuenta (`/accounts/login/google`, `/accounts/session`, `/accounts/logout`) vía la URL base de API del entorno.
+Mantener una tienda pública usable sin autenticación y ofrecer, de forma opcional, Entrar con Google, consultar la sesión compartida y Salir. El cliente consume exclusivamente los contratos públicos de cuenta bajo la URL de API configurada.
 
-Historias cubiertas: H1, H2, H3.
+## Estado tecnológico
 
-## 2. Estado actual del código
+- React 19.3, TypeScript estricto y Vite 8.
+- SPA con `react-router-dom` 7.18.4.
+- Tailwind CSS 4 mediante `@tailwindcss/vite` y tokens en `src/styles.css`.
+- Vitest 5 + Testing Library.
+- Dependencias fijadas a versiones exactas; audit actual sin vulnerabilidades.
+- `main.tsx` solo monta `App` dentro de `StrictMode` e importa estilos globales.
 
-Arquitectura del corte **ya implementada** en la rama:
-
-- SPA React 19 + TypeScript estricto + Vite; sin router ni librerías de datos.
-- Capas `app/`, `shared/config/` y features `storefront-home` + `account-session` (API pública por `index.ts`; sin imports cruzados entre features).
-- `app/App.tsx` compone `<StorefrontPage sessionSlot={<SessionChrome />} />`; `main.tsx` solo bootstrap + `styles.css`.
-- `VITE_API_BASE_URL` tipada en `src/vite-env.d.ts`; `getApiBaseUrl()` con fallback `https://api.friendly-e-shop.duckdns.org` (también default de build en `Dockerfile`).
-- Estilos: Tailwind CSS 4 (`tailwindcss` + `@tailwindcss/vite` en `package.json`); tokens en `src/styles.css` vía `@theme`. Sin CSS colocalizado por feature.
-- Hook `useAccountSession`: `loading | anonymous | authenticated | unreachable`; avisos `session-unreachable` / `login-failed` (`login_error=1`).
-- Tests colocalizados + `src/test/setup.ts` (vitest + Testing Library). Queda pendiente la pasada manual de cierre (T18).
-
-## 3. Skills a respetar al implementar
-
-| Skill | Aplicación en este plan |
-| --- | --- |
-| `feature-arch` | Features autocontenidas, capa `app/`, API pública por feature, fetch colocalizado, tests junto al feature, sin imports cruzados entre features. |
-| `vercel-react-best-practices` | Sin waterfalls innecesarios; una sola consulta de sesión al montar; imports directos (sin barrels profundos); render condicional explícito; lógica de clic en event handlers. |
-| `vercel-composition-patterns` | Variantes explícitas de chrome de sesión (visitante vs autenticado) en lugar de booleanos de modo; composición por `children`/slots en el layout. |
-| `ui-ux-pro-max` | Aspecto de tienda/e-commerce; foco visible; teclado; avisos con `role="alert"`; targets táctiles ≥ 44px; responsive desde 320 px; sin catálogo ni compra (RF-9). |
-| `AGENTS.md` | Textos UI en español; código en inglés; no secretos ni client id de Google en el bundle; no hablar con panel-api ni Google directo; no añadir dependencias sin consulta previa. |
-
-**Dependencias de sesión:** no TanStack Query, router ni SDKs de Google. La sesión es un único `GET`/`POST` con `fetch` y estado local del feature.
-
-**Dependencias de estilo (as-built):** `tailwindcss` y `@tailwindcss/vite` (v4.3.x) como devDependencies; plugin Vite de Tailwind; entry `src/styles.css` con `@import "tailwindcss"` y `@theme`.
-
-## 4. Arquitectura (as-built)
+## Arquitectura actual
 
 ```text
 src/
-├── main.tsx                          # bootstrap StrictMode + createRoot
+├── main.tsx
+├── styles.css
 ├── vite-env.d.ts
-├── styles.css                        # Tailwind 4 + @theme (tokens / tipografía)
 ├── test/
-│   └── setup.ts                      # Testing Library + jest-dom
-├── app/
-│   └── App.tsx                       # compone features; sin lógica de red
-├── shared/
-│   └── config/
-│       └── api-base-url.ts           # VITE_API_BASE_URL + fallback DuckDNS
-└── features/
-    ├── storefront-home/              # escaparate (sin catálogo ni compra)
-    │   ├── components/
-    │   │   └── StorefrontPage.tsx
-    │   └── index.ts                  # API pública
-    └── account-session/              # sesión compartida vía account-api
+│   └── setup.ts
+└── app/
+    ├── App.tsx                         # RouterProvider
+    ├── routes.tsx                      # Layout + ruta index Storefront
+    ├── views/
+    │   ├── Layout/
+    │   │   ├── Layout.tsx              # chrome global + Outlet
+    │   │   └── Layout.test.tsx
+    │   └── Storefront/
+    │       ├── Storefront.tsx          # vista index
+    │       └── Storefront.test.tsx
+    └── shared/
+        ├── config/
+        │   └── api-base-url.ts
         ├── api/
-        │   ├── get-session.ts
-        │   ├── post-logout.ts
-        │   └── build-google-login-url.ts
-        ├── components/
-        │   ├── SessionChrome.tsx     # contenedor: carga sesión, orquesta UI
-        │   ├── GuestActions.tsx      # Entrar con Google (+ avisos vía Notice)
-        │   ├── SignedInActions.tsx   # nombre + Salir
-        │   └── SessionNotice.tsx     # aviso breve accesible
-        ├── hooks/
-        │   └── use-account-session.ts
-        ├── lib/
-        │   └── login-error-from-url.ts
-        ├── types.ts
-        └── index.ts
+        │   └── account/
+        │       ├── constants.ts
+        │       ├── types.ts
+        │       ├── get-session/
+        │       ├── post-logout/
+        │       └── build-google-login-url/
+        └── components/
+            └── AccountSession/
+                ├── constants.ts
+                ├── ui/
+                │   ├── AccountSession.tsx
+                │   ├── AccountSession.test.tsx
+                │   ├── AccountSession.logout.test.tsx
+                │   ├── GuestActions.tsx
+                │   ├── SignedInActions.tsx
+                │   └── SessionNotice.tsx
+                ├── hooks/
+                │   └── use-account-session/
+                │       ├── use-account-session.ts
+                │       └── use-account-session.test.tsx
+                └── lib/
+                    └── login-error-from-url/
 ```
 
-Reglas de importación:
+### Responsabilidades
 
-- `app` → features (solo `index.ts`) y `shared`.
-- `storefront-home` no importa `account-session` por rutas internas; recibe el chrome de sesión por composición desde `app` (`sessionSlot`).
-- `account-session` no importa `storefront-home`.
-- `shared` solo genérico (config de base URL).
+| Área | Responsabilidad |
+| --- | --- |
+| `App.tsx` | Montar `RouterProvider`; no contiene UI ni red. |
+| `routes.tsx` | Declarar `Layout` como ruta padre y `Storefront` como index route. |
+| `views/Layout` | Mantener header, marca, favicon, sesión global y `<Outlet />`. |
+| `views/Storefront` | Renderizar solo el contenido de la vista inicial, sin chrome global. |
+| `shared/config` | Resolver configuración transversal, hoy `VITE_API_BASE_URL`. |
+| `shared/api/account` | Centralizar paths, parámetros, DTOs, clientes HTTP y URL de login del dominio de cuenta. |
+| `AccountSession/ui` | Renderizar las variantes visible, anónima, autenticada y de aviso. |
+| `AccountSession/hooks` | Orquestar estado, ciclo de vida, consulta de sesión y logout. |
+| `AccountSession/lib` | Alojar lógica privada no React ni HTTP, como consumir `login_error`. |
+| `AccountSession/constants.ts` | Centralizar estados y avisos estables de la UI de sesión. |
 
-**Cubre:** RF-1, RF-8, RF-9 (estructura que permite escaparate + chrome de auth sin catálogo).
+## Composición SPA
 
-Ver también `uml.md` (árbol, composición y secuencias).
+`App` monta el router. `Layout` permanece activo entre navegaciones y renderiza la vista actual mediante `<Outlet />`. La ruta index (`/`) muestra `Storefront`.
 
-## 5. Configuración de API del entorno
+El header global usa `/favicon.svg` y monta `AccountSession`. `Storefront` no conoce la sesión ni duplica el header.
 
-**Archivo:** `src/shared/config/api-base-url.ts`
+**Cubre:** RF-1, RF-2, RF-5, RF-9, RF-10.
 
-- Exportar `getApiBaseUrl(): string` = `import.meta.env.VITE_API_BASE_URL ?? 'https://api.friendly-e-shop.duckdns.org'`.
-- Usar siempre esta función al construir URLs de cuenta; no hardcodear hosts en componentes.
-- Docker inyecta `VITE_API_BASE_URL` en build (`Dockerfile`, mismo default DuckDNS); no tocar manifiestos de `infra` en este repo.
+## Configuración de API
+
+`src/app/shared/config/api-base-url.ts` exporta `getApiBaseUrl()`:
+
+```ts
+import.meta.env.VITE_API_BASE_URL ?? 'https://api.friendly-e-shop.duckdns.org'
+```
+
+Todos los contratos de cuenta usan esa función. Las rutas relativas, parámetros y DTOs viven en `shared/api/account/`; no se hardcodean hosts ni endpoints en UI, vistas o hooks.
 
 **Cubre:** RF-8.
 
-## 6. Contratos públicos de cuenta (cliente)
+## Contratos de cuenta
 
-Tipos en `features/account-session/types.ts` (alineados a account-api RF-11/RF-12; solo campos públicos):
+### Consultar sesión
 
-```ts
-type AccountSessionResponse =
-  | { authenticated: false }
-  | { authenticated: true; id: string; email: string; name: string };
-```
+- `GET {apiBase}/accounts/session`.
+- `credentials: 'include'`.
+- Valida la forma JSON antes de devolverla.
+- Respuesta anónima: `{ authenticated: false }`.
+- Respuesta autenticada: `{ authenticated: true, id, email, name }`.
 
-En UI con sesión válida se muestra **solo** `name` (RF-10); `email`/`id` se tipan por fidelidad al contrato pero no se renderizan en este corte.
+### Entrar con Google
 
-### 6.1 Consulta de sesión al cargar
+- Construye `{apiBase}/accounts/login/google?return_to={origin codificado}`.
+- `GuestActions` navega con `window.location.assign`.
+- No incluye SDK, client id ni llamadas directas a Google.
 
-`get-session.ts` + `use-account-session.ts`:
+### Salir
 
-- `GET {apiBase}/accounts/session` con `credentials: 'include'`.
-- Disparar al montar el contenedor de sesión (una vez por carga de página).
-- Estados del hook: `status: 'loading' | 'anonymous' | 'authenticated' | 'unreachable'`, más `account | null` y `notice | null`.
-- Si la respuesta no es OK, red falla o JSON inválido → `unreachable` (no tumbar la página).
-- Si `authenticated: false` → `anonymous`.
-- Si `authenticated: true` → `authenticated` con `name`.
+- `POST {apiBase}/accounts/logout`.
+- `credentials: 'include'`.
+- Solo pasa a estado anónimo después de una respuesta exitosa.
+- Si falla, conserva el estado autenticado.
 
-**Cubre:** RF-4, RF-11.
+**Cubre:** RF-3, RF-4, RF-6, RF-7, RF-8.
 
-### 6.2 Entrar con Google
+## Estado de sesión
 
-`build-google-login-url.ts`:
+`useAccountSession` maneja los estados definidos en `constants.ts`:
 
-- Construir `GET {apiBase}/accounts/login/google?return_to={encodeURIComponent(origen)}`.
-- `origen` = `window.location.origin` de la tienda (no inventar hosts).
-- En `GuestActions`, el CTA navega con `window.location.assign`; no hay llamada XHR a Google ni client id en el bundle.
+- `loading`: consulta inicial en curso; no bloquea la vista.
+- `anonymous`: muestra Entrar con Google.
+- `authenticated`: muestra solo nombre y Salir.
+- `unreachable`: mantiene la tienda usable, muestra Entrar y un aviso.
 
-**Cubre:** RF-2, RF-3.
+Los avisos estables son `login-failed` y `session-unreachable`.
 
-### 6.3 Salir
+Al montar, el hook consume `login_error=1`, limpia el parámetro con `history.replaceState` y combina ese resultado con la respuesta de sesión. El cleanup evita actualizar estado después del desmontaje.
 
-`post-logout.ts`:
+**Cubre:** RF-2, RF-4, RF-5, RF-10, RF-11, RF-12.
 
-- `POST {apiBase}/accounts/logout` con `credentials: 'include'`.
-- Tras éxito (respuesta OK según contrato), el hook pasa a `anonymous`, limpia `account` y deja de mostrar Salir/nombre.
-- Si el POST falla, no fingir salida: mantener sesión visible hasta éxito.
+## UI y accesibilidad
 
-**Cubre:** RF-5, RF-6, RF-7.
+- `AccountSession` selecciona las variantes de UI según el estado.
+- `GuestActions` ofrece «Entrar con Google».
+- `SignedInActions` muestra el nombre y «Salir»; no muestra email ni id.
+- `SessionNotice` usa `role="alert"` y `aria-live="polite"`.
+- Controles con foco visible, targets táctiles mínimos y soporte `motion-reduce`.
+- Layout responsive desde 320 px.
+- `Storefront` mantiene el aspecto de tienda sin catálogo, carrito ni compra en este corte.
 
-### 6.4 Indicador de error al volver de Google
+## Estrategia de archivos y tests
 
-`login-error-from-url.ts`:
+- Las vistas viven en `app/views/<ViewName>/` y su definición está en la raíz de su carpeta.
+- Los componentes reutilizables viven en `app/shared/components/`.
+- Todos los clientes de APIs externas viven en `app/shared/api/`, separados por dominio; actualmente `shared/api/account/`.
+- Cada definición con companions se agrupa con sus tests, estilos, stories o fixtures.
+- Archivos presentacionales simples sin companions permanecen planos dentro de `ui/`.
+- Los hooks de componente viven bajo `hooks/`; utilidades privadas bajo `lib/`.
+- Los tests de contrato mantienen strings esperados explícitos para no repetir el mismo error de las constantes de producción.
 
-- Al montar, inspeccionar `window.location.search` por `login_error=1` (mismo indicador que account-api añade al `return_to`).
-- Si el indicador está presente **y** la sesión resultante no es válida → estado visitante/unreachable + aviso «No se pudo entrar».
-- Tras leer el indicador, limpiarlo de la URL con `history.replaceState` para no remostrar el aviso en refrescos.
+Cobertura actual:
 
-**Cubre:** RF-12 (y refuerza RF-2, RF-11 en el mismo shell usable).
+- `AccountSession`: variantes anónima, autenticada, inalcanzable, error de login y logout.
+- `useAccountSession`: transiciones de hidratación y logout, incluyendo fallos.
+- Clientes API: URL, método, credenciales, validación y errores.
+- Utilidad URL: detección y limpieza de `login_error`.
+- `Layout`: chrome persistente alrededor de contenido routeado.
+- `Storefront`: contenido inicial sin catálogo ni checkout.
 
-## 7. UI del escaparate y chrome de sesión
+Comandos de cierre: `npm test` y `npm audit --audit-level=moderate`.
 
-### 7.1 Página de tienda (`storefront-home`)
+## Fuera de alcance
 
-- Hero de escaparate Friendly E-Shop (marca visible, titular, frase de apoyo) sin listado de productos ni flujo de compra.
-- Layout semántico: `header` (marca + `sessionSlot`) + `main` (mensaje de tienda).
-- Estilos vía clases Tailwind y tokens `@theme` en `styles.css` (verdes, tipografía expresiva Rubik / Nunito Sans).
+- Llamadas a panel-api o a APIs Java de dominio.
+- Llamadas directas a Google.
+- Catálogo, carrito, checkout o publicación.
+- Guardar o administrar cuentas.
+- Keycloak u otros proveedores de identidad.
 
-**Cubre:** RF-1, RF-9.
+## Matriz RF
 
-### 7.2 Variantes de sesión (composición, no booleanos de modo)
-
-En `app/App.tsx`:
-
-```tsx
-<StorefrontPage
-  sessionSlot={<SessionChrome />}
-/>
-```
-
-- `GuestActions`: botón «Entrar con Google» visible solo sin sesión (incl. `unreachable` y fallo de login). No mostrar Salir.
-- `SignedInActions`: texto con **solo el nombre** + control «Salir». No mostrar Entrar.
-- Mientras `loading`: no bloquear el escaparate; el chrome omite acciones (página usable — RF-1).
-- `SessionNotice`: avisos breves con `role="alert"` / `aria-live="polite"` para:
-  - no se pudo comprobar la sesión (RF-11);
-  - no se pudo entrar (RF-12).
-
-**Cubre:** RF-1, RF-2, RF-5, RF-9, RF-10, RF-11, RF-12.
-
-### 7.3 Accesibilidad y responsive (NFR)
-
-- Controles operables por teclado; foco visible (`focus-visible`).
-- Ancho mínimo 320 px (`body { min-width: 320px }`); acciones en cabecera sin scroll horizontal.
-- Textos de interfaz en español: «Entrar con Google», «Salir», avisos acordados.
-- `motion-reduce` / `prefers-reduced-motion` en transiciones del CTA.
-
-## 8. Flujos (resumen)
-
-| Momento | Comportamiento | RFs |
-| --- | --- | --- |
-| Carga anónima OK | Escaparate + Entrar; sin Salir ni nombre | RF-1, RF-2, RF-4, RF-9 |
-| Carga con sesión | Escaparate + nombre + Salir | RF-1, RF-4, RF-5, RF-9, RF-10 |
-| Carga sesión falla | Escaparate + Entrar + aviso breve | RF-1, RF-2, RF-4, RF-11 |
-| Clic Entrar | Navegación a login Google con `return_to` = origin | RF-3, RF-8 |
-| Retorno Google OK | Cookie compartida; `GET /accounts/session` → autenticado | RF-4, RF-5, RF-10 |
-| Retorno Google con `login_error=1` | Visitante + Entrar + aviso no se pudo entrar | RF-2, RF-12 |
-| Clic Salir OK | `POST /accounts/logout` → estado anónimo en tienda | RF-6, RF-7 |
-
-## 9. Pruebas
-
-`src/test/setup.ts` y tests colocalizados (vitest + Testing Library):
-
-| Prueba | Qué verifica | RFs |
-| --- | --- | --- |
-| hook / SessionChrome: mock 200 `authenticated: false` | Muestra Entrar, no Salir | RF-2, RF-4 |
-| mock 200 con `name` | Muestra nombre + Salir, no Entrar | RF-5, RF-10 |
-| mock red caída / 5xx | Página usable + Entrar + aviso sesión | RF-11 |
-| `build-google-login-url` | URL = `{base}/accounts/login/google?return_to=...` encoded | RF-3, RF-8 |
-| `login-error-from-url` + sesión anónima | Aviso «no se pudo entrar» | RF-12 |
-| logout éxito | Tras POST OK, UI anónima | RF-6, RF-7 |
-| `StorefrontPage` | Sin catálogo/compra; aspecto de tienda | RF-1, RF-9 |
-
-Comandos de cierre: `npm test` (unit + lint + build). Pasada manual: T18.
-
-## 10. Fuera de alcance (no planificar implementación)
-
-- Llamadas a panel-api, APIs Java de dominio o Google desde el cliente.
-- Catálogo, carrito, compra, Publicar.
-- Guardar/administrar cuenta.
-- Keycloak u otros IdP.
-- Cambios en `infra` / nginx salvo que el fallback SPA/`/healthz` se rompa (no debería tocarse).
-
-## 11. Orden de implementación (histórico)
-
-1. Semilla `app/` + `shared/config` + bootstrap (`RF-8`).
-2. Feature `account-session`: tipos, API, hook, URL de login, lectura de indicador (`RF-3`, `RF-4`, `RF-6`, `RF-12`).
-3. Componentes Guest / SignedIn / Notice (`RF-2`, `RF-5`, `RF-10`, `RF-11`).
-4. Feature `storefront-home` + composición en `App` (`RF-1`, `RF-9`).
-5. Estilos Tailwind `@theme` / accesibilidad NFR.
-6. Tests + `src/test/setup.ts`.
-7. Verificación manual móvil/escritorio (T18 pendiente).
-
-## 12. Matriz RF → secciones del plan
-
-| RF | Secciones |
+| RF | Cobertura técnica |
 | --- | --- |
-| RF-1 | 4, 7.1, 7.2, 8, 9 |
-| RF-2 | 6.2, 7.2, 8, 9 |
-| RF-3 | 6.2, 8, 9 |
-| RF-4 | 6.1, 8, 9 |
-| RF-5 | 6.3, 7.2, 8, 9 |
-| RF-6 | 6.3, 8, 9 |
-| RF-7 | 6.3, 8, 9 |
-| RF-8 | 5, 6.2, 9 |
-| RF-9 | 4, 7.1, 7.2, 9 |
-| RF-10 | 6 (tipos), 7.2, 8, 9 |
-| RF-11 | 6.1, 7.2, 8, 9 |
-| RF-12 | 6.4, 7.2, 8, 9 |
-
-Todos los RF-1 … RF-12 quedan cubiertos por este plan.
+| RF-1 | Layout, Storefront, responsive y carga no bloqueante. |
+| RF-2 | Estado anonymous/unreachable y GuestActions. |
+| RF-3 | buildGoogleLoginUrl y navegación completa. |
+| RF-4 | getSession y useAccountSession. |
+| RF-5 | Estado authenticated y SignedInActions. |
+| RF-6 | postLogout y acción Salir. |
+| RF-7 | Transición a anonymous después de logout exitoso. |
+| RF-8 | getApiBaseUrl y contrato centralizado en shared/api/account. |
+| RF-9 | Storefront sin catálogo ni compra. |
+| RF-10 | SignedInActions muestra solo nombre. |
+| RF-11 | Estado unreachable y SessionNotice. |
+| RF-12 | consumeLoginErrorFromUrl y aviso login-failed. |

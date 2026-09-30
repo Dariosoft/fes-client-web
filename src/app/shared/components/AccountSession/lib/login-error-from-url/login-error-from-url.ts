@@ -1,4 +1,4 @@
-const LOGIN_ERROR_PARAM = 'login_error';
+import { ACCOUNT_PARAMS } from '../../../../api/account/constants';
 
 export function consumeLoginErrorFromUrl(
   search: string = window.location.search,
@@ -6,13 +6,13 @@ export function consumeLoginErrorFromUrl(
   locationHref: string = window.location.href,
 ): boolean {
   const params = new URLSearchParams(search);
-  const hasLoginError = params.get(LOGIN_ERROR_PARAM) === '1';
+  const hasLoginError = params.get(ACCOUNT_PARAMS.loginError) === '1';
 
   if (!hasLoginError) {
     return false;
   }
 
-  params.delete(LOGIN_ERROR_PARAM);
+  params.delete(ACCOUNT_PARAMS.loginError);
 
   const url = new URL(locationHref);
   const nextSearch = params.toString();

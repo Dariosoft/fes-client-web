@@ -1,4 +1,4 @@
-import type { SessionNotice as SessionNoticeKind } from '../hooks/use-account-session';
+import type { SessionNotice as SessionNoticeKind } from '../hooks/use-account-session/use-account-session';
 
 const NOTICE_COPY: Record<SessionNoticeKind, string> = {
   'session-unreachable': 'No se pudo comprobar la sesión.',
