@@ -20,6 +20,7 @@ Se compila como contenido estático, usa `VITE_API_BASE_URL` en build time y ngi
 - Conserva el lenguaje visual existente salvo que la spec solicite un rediseño.
 
 ## Reglas
+- Lee `/client-web-architecture` al crear o mover componentes, rutas, layouts, features, hooks, clientes API, tests o archivos relacionados.
 - Lee la skill `/vercel-react-best-practices` y la spec activa, si existe, antes de tocar código.
 - Usa `/feature-arch` al crear o mover features, módulos, APIs públicas o imports entre áreas de la aplicación.
 - Usa `/vercel-composition-patterns` al diseñar o refactorizar componentes reutilizables, props y propiedad del estado.
