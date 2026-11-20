@@ -57,8 +57,14 @@ jobs:
         run: npm run verify
 
       - name: Generate SBOM
-        # Trivy accepts CycloneDX up to 1.6; cyclonedx-npm 7 defaults to 1.7.
-        run: npx --no-install cyclonedx-npm --output-file bom.json --spec-version 1.6
+        # Two constraints here:
+        # - Trivy accepts CycloneDX up to 1.6; cyclonedx-npm 7 defaults to 1.7.
+        # - The tool validates the tree with `npm ls`, and npm 11 (Node 24) flags
+        #   this dev tree as ELSPROBLEMS: ESLint needs ajv 6 while the CycloneDX
+        #   library needs ajv 8, and both are legitimately installed. `npm ci`
+        #   already guarantees node_modules matches the lock, so the validation
+        #   failure must not block the SBOM.
+        run: npx --no-install cyclonedx-npm --ignore-npm-errors --output-file bom.json --spec-version 1.6
 
       - name: Dependency vulnerability report (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0
