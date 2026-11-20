@@ -9,8 +9,13 @@ Se compila como contenido estático, usa `VITE_API_BASE_URL` en build time y ngi
 - Instalar: `npm ci`
 - Ejecutar: `npm run dev`
 - Tests: `npm test`
+- Cobertura: `npm run coverage` genera `coverage/`; `npm run coverage:check` exige un mínimo de 90 % de líneas.
+- Verificación completa: `npm run verify` (lint, cobertura con umbral y build de producción).
 - Compilar: `npm run build`
 - Lint: `npm run lint`; usa ESLint con TypeScript tipado y las reglas oficiales de React Hooks.
+- SonarQube: `sonar-project.properties` define el `projectKey`, la organización y el reporte lcov; el CI ejecuta `SonarSource/sonarqube-scan-action` con `SONAR_TOKEN` y espera el Quality Gate.
+- SBOM: `npx --no-install cyclonedx-npm --output-file bom.json --spec-version 1.6`; el CI lo escanea con Trivy.
+- Hook local: activar una vez por clon con `git config core.hooksPath .githooks`; bloquea commits con credenciales obvias.
 
 ## Estilo y convenciones
 - Usa TypeScript estricto, componentes funcionales y nombres de componentes en `PascalCase`.
