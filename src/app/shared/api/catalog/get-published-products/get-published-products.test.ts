@@ -114,6 +114,26 @@ describe('getPublishedProducts', () => {
     await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow(
       'Catalog response shape is invalid',
     );
+
+    const invalidStock = {
+      ...validResponse,
+      items: [{ ...validResponse.items[0], stock: '3' }],
+    };
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(jsonResponse(invalidStock));
+
+    await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow(
+      'Catalog response shape is invalid',
+    );
+  });
+
+  it('accepts a product whose stock is not informed', async () => {
+    const withoutStock = {
+      ...validResponse,
+      items: [{ ...validResponse.items[0], stock: null }],
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(withoutStock));
+
+    await expect(getPublishedProducts({ name: '', page: 1 })).resolves.toEqual(withoutStock);
   });
 
   it('propagates the abort error from fetch', async () => {

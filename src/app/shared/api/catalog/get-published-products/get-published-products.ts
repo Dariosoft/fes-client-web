@@ -30,7 +30,7 @@ function isPublishedProduct(value: unknown): value is PublishedProduct {
     Number.isFinite(value.price) &&
     typeof value.currency === 'string' &&
     value.currency !== '' &&
-    typeof value.stock === 'number' &&
+    (value.stock === null || typeof value.stock === 'number') &&
     Array.isArray(value.images) &&
     value.images.every(isProductImage)
   );

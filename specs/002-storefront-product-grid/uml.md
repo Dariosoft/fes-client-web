@@ -83,7 +83,7 @@ classDiagram
     +string name
     +number price
     +string currency
-    +number stock
+    +number|null stock
     +List~ProductImage~ images
   }
 

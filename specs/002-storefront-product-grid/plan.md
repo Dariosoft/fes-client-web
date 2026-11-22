@@ -128,7 +128,7 @@ La validación del cliente comprueba:
 
 - `items` es un arreglo.
 - `page`, `size` son enteros mayores o iguales a 1; `totalItems`, `totalPages` son enteros mayores o iguales a 0.
-- Cada producto tiene `id` y `name` string, `price` número finito, `currency` string no vacío, `stock` número y `images` arreglo.
+- Cada producto tiene `id` y `name` string, `price` número finito, `currency` string no vacío, `stock` número o `null` y `images` arreglo.
 - Cada imagen tiene `id` y `url` string.
 
 **Cubre:** RF-2, RF-3, RF-9, RF-15, RF-19, RF-21.

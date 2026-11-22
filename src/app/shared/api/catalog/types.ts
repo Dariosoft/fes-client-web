@@ -8,7 +8,7 @@ export type PublishedProduct = {
   name: string;
   price: number;
   currency: string;
-  stock: number;
+  stock: number | null;
   images: ProductImage[];
 };
 
