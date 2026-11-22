@@ -4,7 +4,7 @@ Plan técnico para `client-web` en la rama `002/feat-storefront-product-grid`. I
 
 ## Objetivo técnico
 
-Reemplazar el contenido actual de `views/Storefront` por una grilla paginada de productos publicados, alimentada por la lectura pública de `catalog-api`, y agregar un buscador por nombre en el header compartido. La URL (`?name=...&page=...`) es la única fuente de verdad de la búsqueda y la página; el header y la grilla se comunican por ese contrato y no por estado React compartido.
+Reemplazar el contenido actual de `views/Storefront` por una grilla paginada de productos publicados, alimentada por la lectura pública de `catalog-api`, y agregar un buscador por nombre en el header compartido. La URL (`?name=...&page=...&size=...`) es la única fuente de verdad de la búsqueda, la página y el tamaño de página; el header y la grilla se comunican por ese contrato y no por estado React compartido.
 
 ## Decisiones de arquitectura
 
@@ -144,6 +144,7 @@ export const CATALOG_SEARCH_PARAMS = {
 } as const;
 
 export const CATALOG_PAGE_SIZE = 24;
+export const CATALOG_MAX_PAGE_SIZE = 100;
 export const CATALOG_SEARCH_MAX_LENGTH = 100;
 
 export function normalizeCatalogSearchTerm(raw: string): string {
@@ -153,7 +154,7 @@ export function normalizeCatalogSearchTerm(raw: string): string {
 
 Contrato de URL de la tienda:
 
-- Búsqueda aplicada: `/?name=<término>&page=<n>`.
+- Búsqueda aplicada: `/?name=<término>&page=<n>`, más `&size=<n>` cuando difiere de 24.
 - Sin término: `/?page=<n>` (el parámetro `name` se omite).
 - Los nombres de los parámetros de URL y los de la API se declaran por separado aunque coincidan hoy; son contratos distintos y no deben acoplarse.
 - El término se codifica con `URLSearchParams`, de modo que espacios, acentos y caracteres especiales viajen seguros.
@@ -178,7 +179,7 @@ function getPublishedProducts(input: GetPublishedProductsInput): Promise<Publish
 Implementación:
 
 - Resuelve el host con `getApiBaseUrl()` y arma la URL con `URL` + `URLSearchParams`.
-- Agrega `name` solo si no está vacío, siempre `page` y `size=CATALOG_PAGE_SIZE`.
+- Agrega `name` solo si no está vacío, siempre `page` y `size` con el tamaño de página activo.
 - `fetch` con `headers: { Accept: 'application/json' }`, `credentials: 'omit'` y `signal`.
 - Si `response.ok` es falso, lanza un `Error` con el estado HTTP.
 - Parsea con `response.json()` y valida la forma completa antes de devolver el DTO.
@@ -208,7 +209,8 @@ Reglas:
 1. `name`: se aplica `normalizeCatalogSearchTerm` (recorte de espacios exteriores y límite de `CATALOG_SEARCH_MAX_LENGTH`, 100) antes de usarlo (RF-24). Un resultado vacío equivale a búsqueda sin filtro (RF-11). No se restringen caracteres.
 2. `page`: se acepta solo un entero seguro mayor o igual a 1.
 3. `page` ausente: se usa 1 y no se reescribe la URL (la URL raíz `/` es válida).
-4. `page` presente pero no numérica, menor a 1, con decimales, fuera del rango seguro o no entera: se usa 1, `shouldCanonicalizePage` pasa a `true` y `Storefront` reemplaza la URL por `/?...&page=1` (RF-23).
+4. `page` presente pero no numérica, menor a 1, con decimales, fuera del rango seguro o no entera: se usa 1, `shouldCanonicalizeSearch` pasa a `true` y `Storefront` reemplaza la URL por `/?...&page=1` (RF-23).
+5. `size` presente pero no entero, menor a 1 o mayor a 100: se usa 24 y la URL se reescribe sin el parámetro (RF-3).
 5. `page` mayor al total de páginas: no puede detectarse antes de la respuesta. Cuando la lectura termina con éxito:
    - si `page > totalPages`, o
    - si `totalPages === 0` y `page > 1`,
@@ -293,17 +295,17 @@ Pruebas: render del formulario, envío con Enter, envío con la lupa, recorte a 
 
 La grilla:
 
-- `<ul>` con `role="list"` y clases `grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` dentro de un ancho máximo alineado con el escaparate actual.
+- `<ul>` con `role="list"` y clases `grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6` dentro de un ancho máximo alineado con el escaparate actual, con 6 productos por fila en escritorio.
 - Cada `<li>` monta una `ProductCard` con `key={product.id}`.
-- Como máximo se muestran los 24 productos que devuelve la página (RF-3).
+- Como máximo se muestran los productos del tamaño de página activo que devuelve la página (RF-3).
 - La paginación se muestra debajo de la grilla cuando hay más de una página.
 
 `ProductCard`:
 
 - `<article tabIndex={0} aria-labelledby={titleId}>` con imagen, nombre y precio; el foco es visible con `focus-visible:outline-2` y la tarjeta se puede recorrer con teclado aunque en este corte no tenga acción de clic (RF-12 y requisito no funcional de foco).
-- Imagen: primera entrada de `product.images`; `<img src={url} alt={product.name} loading="lazy" decoding="async">` con `aspect-square object-cover`.
+- Imagen: `ProductImageCarousel` dentro de un contenedor `aspect-square`. Con una sola foto muestra `<img src={url} alt={product.name} loading="lazy" decoding="async" class="object-cover">` sin controles; con varias agrega botones «Foto anterior» y «Foto siguiente» con íconos `ChevronLeft`/`ChevronRight` de `lucide-react`, navegación circular y un indicador `N / M` en `aria-live="polite"`. El `alt` incluye la posición (`<nombre> — N`) cuando hay varias.
 - Sin imágenes: bloque del mismo tamaño con el ícono `ImageOff` de `lucide-react`, `aria-hidden="true"` y un texto `sr-only` «Sin imagen» (RF-13).
-- Nombre: `<h2>` con el nombre del producto.
+- Nombre: `<h2>` de una sola línea (`whitespace-nowrap`), con desvanecido en el borde derecho cuando el texto no entra. El `<span>` interno mide su desborde y, al pasar el mouse o al recibir foco la tarjeta, se desplaza horizontalmente a velocidad constante (60 px/s) hasta mostrar el final; al salir vuelve en 250 ms. Con `prefers-reduced-motion` no se desplaza.
 - Precio y moneda: `formatPrice(product.price, product.currency)` (RF-12).
 - No muestra stock, dueño, etapa ni acciones de compra.
 
@@ -385,7 +387,7 @@ La grilla:
 | --- | --- |
 | RF-1 | `Storefront` deja de ser presentacional y compone grilla, paginación y estados. |
 | RF-2 | `getPublishedProducts` contra la lectura pública y `usePublishedProducts`. |
-| RF-3 | `CATALOG_PAGE_SIZE = 24` enviado como `size`; máximo 24 tarjetas por página. |
+| RF-3 | `size` de la URL (24 por defecto, máximo 100) enviado a la API; la grilla muestra como máximo ese tamaño. |
 | RF-4 | `ProductSearch` dentro del `header` de `Layout`. |
 | RF-5 | `onSubmit` del formulario aplica el término con Enter. |
 | RF-6 | Botón `type="submit"` de la lupa usa el mismo `onSubmit`. |

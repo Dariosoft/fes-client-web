@@ -16,7 +16,7 @@ function buildProducts(count: number): PublishedProduct[] {
 
 describe('ProductGrid', () => {
   it('renders one semantic list item per product', () => {
-    render(<ProductGrid products={buildProducts(3)} />);
+    render(<ProductGrid products={buildProducts(3)} size={24} />);
 
     const list = screen.getByRole('list');
 
@@ -25,16 +25,22 @@ describe('ProductGrid', () => {
     expect(screen.getByRole('heading', { name: 'Producto 2' })).toBeInTheDocument();
   });
 
-  it('renders at most 24 products per page', () => {
-    render(<ProductGrid products={buildProducts(30)} />);
+  it('renders at most the requested page size', () => {
+    render(<ProductGrid products={buildProducts(30)} size={24} />);
 
     expect(screen.getAllByRole('listitem')).toHaveLength(24);
     expect(screen.getByRole('heading', { name: 'Producto 24' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Producto 25' })).not.toBeInTheDocument();
   });
 
+  it('renders every product when the page size covers them', () => {
+    render(<ProductGrid products={buildProducts(6)} size={100} />);
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(6);
+  });
+
   it('renders an empty list without crashing', () => {
-    render(<ProductGrid products={[]} />);
+    render(<ProductGrid products={[]} size={24} />);
 
     expect(screen.getByRole('list')).toBeEmptyDOMElement();
   });

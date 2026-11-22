@@ -6,7 +6,8 @@ describe('readCatalogSearch', () => {
     expect(readCatalogSearch(new URLSearchParams())).toEqual({
       name: '',
       page: 1,
-      shouldCanonicalizePage: false,
+      size: 24,
+      shouldCanonicalizeSearch: false,
     });
   });
 
@@ -16,7 +17,8 @@ describe('readCatalogSearch', () => {
     expect(readCatalogSearch(params)).toEqual({
       name: 'mesa ratona',
       page: 3,
-      shouldCanonicalizePage: false,
+      size: 24,
+      shouldCanonicalizeSearch: false,
     });
   });
 
@@ -39,7 +41,8 @@ describe('readCatalogSearch', () => {
       expect(readCatalogSearch(params)).toEqual({
         name: 'lampara',
         page: 1,
-        shouldCanonicalizePage: true,
+        size: 24,
+        shouldCanonicalizeSearch: true,
       });
     },
   );
@@ -48,7 +51,8 @@ describe('readCatalogSearch', () => {
     expect(readCatalogSearch(new URLSearchParams({ page: '9007199254740991' }))).toEqual({
       name: '',
       page: 9007199254740991,
-      shouldCanonicalizePage: false,
+      size: 24,
+      shouldCanonicalizeSearch: false,
     });
   });
 
@@ -56,7 +60,30 @@ describe('readCatalogSearch', () => {
     expect(readCatalogSearch(new URLSearchParams({ page: '9007199254740992' }))).toEqual({
       name: '',
       page: 1,
-      shouldCanonicalizePage: true,
+      size: 24,
+      shouldCanonicalizeSearch: true,
     });
   });
+
+  it('keeps a valid page size inside the allowed range', () => {
+    expect(readCatalogSearch(new URLSearchParams({ size: '4' }))).toEqual({
+      name: '',
+      page: 1,
+      size: 4,
+      shouldCanonicalizeSearch: false,
+    });
+    expect(readCatalogSearch(new URLSearchParams({ size: '100' })).size).toBe(100);
+  });
+
+  it.each(['0', '-1', '4.5', 'abc', '101', ''])(
+    'canonicalizes the invalid size %j to the default page size',
+    (rawSize) => {
+      expect(readCatalogSearch(new URLSearchParams({ size: rawSize }))).toEqual({
+        name: '',
+        page: 1,
+        size: 24,
+        shouldCanonicalizeSearch: true,
+      });
+    },
+  );
 });

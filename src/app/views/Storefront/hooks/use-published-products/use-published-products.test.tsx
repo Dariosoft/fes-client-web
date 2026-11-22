@@ -44,7 +44,7 @@ describe('usePublishedProducts', () => {
   it('starts loading and resolves the first page', async () => {
     getPublishedProductsMock.mockResolvedValue(catalogPage(1));
 
-    const { result } = renderHook(() => usePublishedProducts('', 1));
+    const { result } = renderHook(() => usePublishedProducts('', 1, 24));
 
     expect(result.current.state.status).toBe('loading');
     await waitFor(() => expect(result.current.state.status).toBe('success'));
@@ -52,6 +52,7 @@ describe('usePublishedProducts', () => {
     expect(getPublishedProductsMock).toHaveBeenCalledWith({
       name: '',
       page: 1,
+      size: 24,
       signal: expect.any(AbortSignal) as AbortSignal,
     });
   });
@@ -59,7 +60,7 @@ describe('usePublishedProducts', () => {
   it('exposes an error when the request fails', async () => {
     getPublishedProductsMock.mockRejectedValue(new Error('network down'));
 
-    const { result } = renderHook(() => usePublishedProducts('', 1));
+    const { result } = renderHook(() => usePublishedProducts('', 1, 24));
 
     await waitFor(() => expect(result.current.state.status).toBe('error'));
     expect(result.current.state.error?.message).toBe('network down');
@@ -70,7 +71,7 @@ describe('usePublishedProducts', () => {
       .mockRejectedValueOnce(new Error('network down'))
       .mockResolvedValueOnce(catalogPage(1));
 
-    const { result } = renderHook(() => usePublishedProducts('', 1));
+    const { result } = renderHook(() => usePublishedProducts('', 1, 24));
     await waitFor(() => expect(result.current.state.status).toBe('error'));
 
     act(() => {
@@ -85,7 +86,7 @@ describe('usePublishedProducts', () => {
   it('aborts the previous request and reloads when the query changes', () => {
     getPublishedProductsMock.mockImplementation(() => new Promise(() => undefined));
 
-    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page), {
+    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page, 24), {
       initialProps: { page: 1 },
     });
     const firstSignal = getPublishedProductsMock.mock.calls[0]?.[0].signal;
@@ -100,7 +101,7 @@ describe('usePublishedProducts', () => {
   it('aborts on unmount', () => {
     getPublishedProductsMock.mockImplementation(() => new Promise(() => undefined));
 
-    const { unmount } = renderHook(() => usePublishedProducts('', 1));
+    const { unmount } = renderHook(() => usePublishedProducts('', 1, 24));
     const signal = getPublishedProductsMock.mock.calls[0]?.[0].signal;
 
     unmount();
@@ -115,7 +116,7 @@ describe('usePublishedProducts', () => {
       .mockReturnValueOnce(firstRequest.promise)
       .mockReturnValueOnce(secondRequest.promise);
 
-    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page), {
+    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page, 24), {
       initialProps: { page: 1 },
     });
 
@@ -144,7 +145,7 @@ describe('usePublishedProducts', () => {
         }),
     );
 
-    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page), {
+    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page, 24), {
       initialProps: { page: 1 },
     });
 

@@ -13,8 +13,8 @@ type SettledRequest =
 
 const LOADING_STATE: PublishedProductsState = { status: 'loading', data: null, error: null };
 
-function createRequestKey(name: string, page: number, attempt: number): string {
-  return `${name}\u0000${String(page)}\u0000${String(attempt)}`;
+function createRequestKey(name: string, page: number, size: number, attempt: number): string {
+  return `${name}\u0000${String(page)}\u0000${String(size)}\u0000${String(attempt)}`;
 }
 
 function toError(value: unknown): Error {
@@ -24,16 +24,17 @@ function toError(value: unknown): Error {
 export function usePublishedProducts(
   name: string,
   page: number,
+  size: number,
 ): { state: PublishedProductsState; retry: () => void } {
   const [attempt, setAttempt] = useState(0);
   const [settled, setSettled] = useState<SettledRequest | null>(null);
-  const requestKey = createRequestKey(name, page, attempt);
+  const requestKey = createRequestKey(name, page, size, attempt);
 
   useEffect(() => {
     const controller = new AbortController();
-    const effectKey = createRequestKey(name, page, attempt);
+    const effectKey = createRequestKey(name, page, size, attempt);
 
-    getPublishedProducts({ name, page, signal: controller.signal }).then(
+    getPublishedProducts({ name, page, size, signal: controller.signal }).then(
       (data) => {
         if (controller.signal.aborted) {
           return;
@@ -53,7 +54,7 @@ export function usePublishedProducts(
     return () => {
       controller.abort();
     };
-  }, [name, page, attempt]);
+  }, [name, page, size, attempt]);
 
   const state: PublishedProductsState =
     settled?.key === requestKey

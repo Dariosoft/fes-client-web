@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CATALOG_SEARCH_PARAMS } from '../../shared/config/catalog-search';
+import {
+  CATALOG_PAGE_SIZE,
+  CATALOG_SEARCH_PARAMS,
+} from '../../shared/config/catalog-search';
 import type { PublishedProduct } from '../../shared/api/catalog/types';
 import { STOREFRONT_COPY } from './constants';
 import { usePublishedProducts } from './hooks/use-published-products/use-published-products';
@@ -16,7 +19,7 @@ type StorefrontContent =
   | { kind: 'empty'; searchTerm: string }
   | { kind: 'grid'; products: PublishedProduct[]; totalPages: number };
 
-function createCatalogSearchParams(name: string, page: number): URLSearchParams {
+function createCatalogSearchParams(name: string, page: number, size: number): URLSearchParams {
   const params = new URLSearchParams();
 
   if (name !== '') {
@@ -24,6 +27,10 @@ function createCatalogSearchParams(name: string, page: number): URLSearchParams 
   }
 
   params.set(CATALOG_SEARCH_PARAMS.page, String(page));
+
+  if (size !== CATALOG_PAGE_SIZE) {
+    params.set(CATALOG_SEARCH_PARAMS.size, String(size));
+  }
 
   return params;
 }
@@ -50,12 +57,12 @@ function resolveContent(
 
 export function Storefront() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { name, page, shouldCanonicalizePage } = readCatalogSearch(searchParams);
-  const { state, retry } = usePublishedProducts(name, page);
+  const { name, page, size, shouldCanonicalizeSearch } = readCatalogSearch(searchParams);
+  const { state, retry } = usePublishedProducts(name, page, size);
   const totalPages = state.status === 'success' ? state.data.totalPages : 0;
   const isPageOutOfRange =
     state.status === 'success' && (totalPages === 0 ? page > 1 : page > totalPages);
-  const shouldShowLoading = shouldCanonicalizePage || isPageOutOfRange;
+  const shouldShowLoading = shouldCanonicalizeSearch || isPageOutOfRange;
   const content = resolveContent(state, name, shouldShowLoading);
 
   useEffect(() => {
@@ -63,17 +70,17 @@ export function Storefront() {
       return;
     }
 
-    void setSearchParams(createCatalogSearchParams(name, 1), { replace: true });
-  }, [shouldShowLoading, name, setSearchParams]);
+    void setSearchParams(createCatalogSearchParams(name, 1, size), { replace: true });
+  }, [shouldShowLoading, name, size, setSearchParams]);
 
   function handleSelectPage(nextPage: number) {
-    void setSearchParams(createCatalogSearchParams(name, nextPage));
+    void setSearchParams(createCatalogSearchParams(name, nextPage, size));
   }
 
   return (
     <section
       aria-labelledby="storefront-products-title"
-      className="mx-auto w-full max-w-6xl px-4 py-10 md:px-8 md:py-14"
+      className="mx-auto w-full max-w-7xl px-4 py-10 md:px-8 md:py-14"
     >
       <h1
         id="storefront-products-title"
@@ -92,7 +99,7 @@ export function Storefront() {
         ) : null}
         {content.kind === 'grid' ? (
           <>
-            <ProductGrid products={content.products} />
+            <ProductGrid products={content.products} size={size} />
             <ProductGridPagination
               page={page}
               totalPages={content.totalPages}

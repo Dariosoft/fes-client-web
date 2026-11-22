@@ -17,19 +17,19 @@ El Storefront público hoy es una página de presentación que no muestra el sur
 ## Requisitos funcionales (criterios de aceptación en EARS)
 - RF-1: EL SISTEMA reemplazará el contenido actual del Storefront por una grilla de productos.
 - RF-2: CUANDO la tienda se muestra, EL SISTEMA presentará en la grilla todos los productos publicados que expone la lectura pública del catálogo.
-- RF-3: EL SISTEMA mostrará como máximo 24 productos por página.
+- RF-3: EL SISTEMA mostrará como máximo el tamaño de página solicitado, con 24 productos por página por defecto y 100 como máximo.
 - RF-4: EL SISTEMA mostrará el buscador por nombre dentro del header compartido, visible en la tienda.
 - RF-5: CUANDO el visitante presiona Enter en el campo del buscador, EL SISTEMA aplicará el término escrito como filtro por nombre del catálogo.
 - RF-6: CUANDO el visitante activa la lupa del buscador, EL SISTEMA aplicará el término escrito como filtro por nombre del catálogo.
 - RF-7: MIENTRAS el visitante escribe en el buscador sin presionar Enter ni la lupa, EL SISTEMA no aplicará el filtro ni volverá a pedir productos.
-- RF-8: CUANDO se aplica un término de búsqueda, EL SISTEMA dejará en la URL el estado `?name=...&page=...` con el término aplicado y la página consultada.
+- RF-8: CUANDO se aplica un término de búsqueda, EL SISTEMA dejará en la URL el estado `?name=...&page=...` con el término aplicado y la página consultada, más `size=...` cuando el tamaño de página difiera del valor por defecto.
 - RF-9: CUANDO el visitante abre, recarga o comparte una URL con `name` y `page`, EL SISTEMA reproducirá esa búsqueda y esa página.
 - RF-10: CUANDO el visitante abre una URL con `name`, EL SISTEMA mostrará ese término escrito en el campo del buscador.
 - RF-11: CUANDO el visitante envía el buscador con el campo vacío o con solo espacios, EL SISTEMA mostrará la grilla sin filtrar por nombre.
 - RF-12: EL SISTEMA mostrará en cada tarjeta la imagen, el nombre, el precio y la moneda del producto, con el precio formateado en es-AR y símbolo de moneda (`$` para ARS y `US$` para USD).
 - RF-13: DONDE un producto no tenga imágenes, EL SISTEMA mostrará en su tarjeta un marcador visual en lugar de la imagen.
 - RF-14: EL SISTEMA mostrará una paginación visible con números de página seleccionables y el total de páginas, calculados con el total de productos y el total de páginas de la respuesta.
-- RF-15: CUANDO el visitante elige otra página, EL SISTEMA mostrará los 24 productos de esa página, conservará el término de búsqueda activo y lo reflejará en la URL.
+- RF-15: CUANDO el visitante elige otra página, EL SISTEMA mostrará los productos de esa página con el tamaño de página activo, conservará el término de búsqueda y lo reflejará en la URL.
 - RF-16: MIENTRAS la lectura de productos está en curso, EL SISTEMA mostrará un estado de carga en lugar de la grilla.
 - RF-17: SI el término o la página solicitados no devuelven productos pero el catálogo tiene productos publicados, ENTONCES EL SISTEMA mostrará un estado vacío que indique que no hay productos para esa búsqueda.
 - RF-18: SI el catálogo no tiene ningún producto publicado, ENTONCES EL SISTEMA mostrará un estado vacío que indique que todavía no hay productos disponibles.

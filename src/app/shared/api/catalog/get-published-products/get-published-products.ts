@@ -1,11 +1,11 @@
 import { getApiBaseUrl } from '../../../config/api-base-url';
-import { CATALOG_PAGE_SIZE } from '../../../config/catalog-search';
 import { CATALOG_PATHS, CATALOG_QUERY_PARAMS } from '../constants';
 import type { ProductImage, PublishedProduct, PublishedProductsResponse } from '../types';
 
 export type GetPublishedProductsInput = {
   name: string;
   page: number;
+  size: number;
   signal?: AbortSignal;
 };
 
@@ -58,7 +58,7 @@ export async function getPublishedProducts(
   }
 
   url.searchParams.set(CATALOG_QUERY_PARAMS.page, String(input.page));
-  url.searchParams.set(CATALOG_QUERY_PARAMS.size, String(CATALOG_PAGE_SIZE));
+  url.searchParams.set(CATALOG_QUERY_PARAMS.size, String(input.size));
 
   const response = await fetch(url.toString(), {
     headers: { Accept: 'application/json' },

@@ -14,7 +14,7 @@ function ProductGridLoading() {
       <span className="sr-only">{STOREFRONT_COPY.loading}</span>
       <ul
         aria-hidden="true"
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6"
       >
         {SKELETON_KEYS.map((skeletonKey) => (
           <li

@@ -39,7 +39,7 @@ describe('getPublishedProducts', () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://api.friendly-e-shop.test');
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(validResponse));
 
-    await expect(getPublishedProducts({ name: '', page: 2 })).resolves.toEqual(validResponse);
+    await expect(getPublishedProducts({ name: '', page: 2, size: 24 })).resolves.toEqual(validResponse);
 
     expect(firstFetchCall()?.[0]).toBe(
       'http://api.friendly-e-shop.test/catalog/publish?page=2&size=24',
@@ -52,7 +52,7 @@ describe('getPublishedProducts', () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://api.friendly-e-shop.test');
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(validResponse));
 
-    await getPublishedProducts({ name: 'zapatillas urbanas', page: 1 });
+    await getPublishedProducts({ name: 'zapatillas urbanas', page: 1, size: 24 });
 
     expect(firstFetchCall()?.[0]).toBe(
       'http://api.friendly-e-shop.test/catalog/publish?name=zapatillas+urbanas&page=1&size=24',
@@ -63,7 +63,7 @@ describe('getPublishedProducts', () => {
     const controller = new AbortController();
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(validResponse));
 
-    await getPublishedProducts({ name: '', page: 1, signal: controller.signal });
+    await getPublishedProducts({ name: '', page: 1, size: 24, signal: controller.signal });
 
     expect(firstFetchCall()?.[1]?.signal).toBe(controller.signal);
   });
@@ -71,7 +71,7 @@ describe('getPublishedProducts', () => {
   it('rejects a failed request with the HTTP status', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({}, 503));
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow(
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).rejects.toThrow(
       'Catalog request failed with status 503',
     );
   });
@@ -81,7 +81,7 @@ describe('getPublishedProducts', () => {
       new Response('no es json', { status: 200, headers: { 'Content-Type': 'application/json' } }),
     );
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow();
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).rejects.toThrow();
   });
 
   it('rejects a response missing required fields', async () => {
@@ -89,7 +89,7 @@ describe('getPublishedProducts', () => {
       jsonResponse({ items: [], page: 1, size: 24, totalItems: 0 }),
     );
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow(
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).rejects.toThrow(
       'Catalog response shape is invalid',
     );
   });
@@ -101,7 +101,7 @@ describe('getPublishedProducts', () => {
     };
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(jsonResponse(invalidPrice));
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow(
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).rejects.toThrow(
       'Catalog response shape is invalid',
     );
 
@@ -111,7 +111,7 @@ describe('getPublishedProducts', () => {
     };
     vi.mocked(globalThis.fetch).mockResolvedValueOnce(jsonResponse(invalidImages));
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow(
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).rejects.toThrow(
       'Catalog response shape is invalid',
     );
 
@@ -121,7 +121,7 @@ describe('getPublishedProducts', () => {
     };
     vi.mocked(globalThis.fetch).mockResolvedValueOnce(jsonResponse(invalidStock));
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).rejects.toThrow(
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).rejects.toThrow(
       'Catalog response shape is invalid',
     );
   });
@@ -133,7 +133,7 @@ describe('getPublishedProducts', () => {
     };
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(withoutStock));
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).resolves.toEqual(withoutStock);
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).resolves.toEqual(withoutStock);
   });
 
   it('propagates the abort error from fetch', async () => {
@@ -143,7 +143,7 @@ describe('getPublishedProducts', () => {
     );
 
     await expect(
-      getPublishedProducts({ name: '', page: 1, signal: controller.signal }),
+      getPublishedProducts({ name: '', page: 1, size: 24, signal: controller.signal }),
     ).rejects.toMatchObject({ name: 'AbortError' });
   });
 
@@ -151,6 +151,6 @@ describe('getPublishedProducts', () => {
     const emptyCatalog = { items: [], page: 1, size: 24, totalItems: 0, totalPages: 0 };
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(emptyCatalog));
 
-    await expect(getPublishedProducts({ name: '', page: 1 })).resolves.toEqual(emptyCatalog);
+    await expect(getPublishedProducts({ name: '', page: 1, size: 24 })).resolves.toEqual(emptyCatalog);
   });
 });

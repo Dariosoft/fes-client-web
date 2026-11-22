@@ -179,6 +179,39 @@ describe('Storefront', () => {
     expect(requestedUrl?.searchParams.get('size')).toBe('24');
   });
 
+  it('honours the page size from the URL and keeps it when changing page', async () => {
+    const user = userEvent.setup();
+    const requestedUrls = mockCatalogFetch((url) => {
+      const page = Number(url.searchParams.get('page'));
+
+      return jsonResponse(
+        catalogResponse({ page, size: 4, items: buildProducts(4), totalItems: 8, totalPages: 2 }),
+      );
+    });
+
+    renderStorefront('/?size=4');
+    await screen.findByRole('heading', { name: 'Producto 1' });
+
+    expect(requestedUrls[0]?.searchParams.get('size')).toBe('4');
+    expect(screen.getAllByRole('article')).toHaveLength(4);
+    expect(currentLocation()).toBe('/?size=4');
+
+    await user.click(screen.getByRole('button', { name: 'Página 2' }));
+
+    await waitFor(() => expect(currentLocation()).toBe('/?page=2&size=4'));
+    await waitFor(() => expect(requestedUrls.at(-1)?.searchParams.get('size')).toBe('4'));
+  });
+
+  it('drops an invalid page size and falls back to the default', async () => {
+    const requestedUrls = mockCatalogFetch(() => jsonResponse(catalogResponse()));
+
+    renderStorefront('/?size=500');
+    await screen.findByRole('heading', { name: 'Producto 1' });
+
+    expect(requestedUrls[0]?.searchParams.get('size')).toBe('24');
+    await waitFor(() => expect(currentLocation()).toBe('/?page=1'));
+  });
+
   it('keeps the active term when the visitor changes page', async () => {
     const user = userEvent.setup();
     const requestedUrls = mockCatalogFetch((url) => {

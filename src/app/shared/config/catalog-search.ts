@@ -1,9 +1,12 @@
 export const CATALOG_SEARCH_PARAMS = {
   name: 'name',
   page: 'page',
+  size: 'size',
 } as const;
 
 export const CATALOG_PAGE_SIZE = 24;
+
+export const CATALOG_MAX_PAGE_SIZE = 100;
 
 export const CATALOG_SEARCH_MAX_LENGTH = 100;
 

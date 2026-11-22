@@ -7,7 +7,13 @@ export const STOREFRONT_COPY = {
   emptySearchHint: 'Probá con otro nombre o revisá la ortografía.',
   error: 'No pudimos cargar los productos. Revisá tu conexión e intentá de nuevo.',
   retry: 'Reintentar',
+  previousImage: 'Foto anterior',
+  nextImage: 'Foto siguiente',
 } as const;
+
+export function buildCarouselPosition(current: number, total: number): string {
+  return `${String(current)} / ${String(total)}`;
+}
 
 export function buildEmptySearchMessage(searchTerm: string): string {
   return `No encontramos productos para “${searchTerm}”.`;

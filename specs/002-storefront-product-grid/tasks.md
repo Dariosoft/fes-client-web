@@ -7,7 +7,7 @@ Desglose incremental de `specs/002-storefront-product-grid/plan.md`. Cada tarea 
 - [x] **T1. Crear `src/app/shared/config/catalog-search.ts` con el contrato de URL.**
   **Depende de:** nada.
   **RF:** RF-8, RF-22, RF-24
-  **Done when:** exporta `CATALOG_SEARCH_PARAMS` (`name`, `page`), `CATALOG_PAGE_SIZE = 24`, `CATALOG_SEARCH_MAX_LENGTH = 100` y `normalizeCatalogSearchTerm`; no queda ningún 24 o 100 literal en las vistas.
+  **Done when:** exporta `CATALOG_SEARCH_PARAMS` (`name`, `page`, `size`), `CATALOG_PAGE_SIZE = 24`, `CATALOG_MAX_PAGE_SIZE = 100`, `CATALOG_SEARCH_MAX_LENGTH = 100` y `normalizeCatalogSearchTerm`; no queda ningún 24 o 100 literal en las vistas.
 
 - [x] **T2. Crear `src/app/shared/api/catalog/constants.ts` y `types.ts`.**
   **Depende de:** nada.
