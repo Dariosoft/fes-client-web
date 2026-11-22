@@ -30,7 +30,35 @@ describe('Layout', () => {
     );
 
     expect(screen.getByText('Friendly E-Shop')).toBeInTheDocument();
+    expect(screen.getByRole('search', { name: 'Buscar productos' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Página routeada' })).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'Entrar con Google' })).toBeInTheDocument();
+  });
+
+  it('keeps the search box available next to the account session', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'http://api.friendly-e-shop.test');
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse({ authenticated: false }));
+
+    render(
+      <MemoryRouter initialEntries={['/?name=mesa&page=2']}>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<h1>Página routeada</h1>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('searchbox', { name: 'Buscar productos por nombre' })).toHaveValue(
+      'mesa',
+    );
+    expect(screen.getByRole('button', { name: 'Buscar' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Entrar con Google' })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith('http://api.friendly-e-shop.test/accounts/session', {
+      credentials: 'include',
+    });
   });
 });
