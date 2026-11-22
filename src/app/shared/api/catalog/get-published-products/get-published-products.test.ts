@@ -42,7 +42,7 @@ describe('getPublishedProducts', () => {
     await expect(getPublishedProducts({ name: '', page: 2 })).resolves.toEqual(validResponse);
 
     expect(firstFetchCall()?.[0]).toBe(
-      'http://api.friendly-e-shop.test/catalog/products/published?page=2&size=24',
+      'http://api.friendly-e-shop.test/catalog/publish?page=2&size=24',
     );
     expect(firstFetchCall()?.[1]?.credentials).toBe('omit');
     expect(firstFetchCall()?.[1]?.headers).toEqual({ Accept: 'application/json' });
@@ -55,7 +55,7 @@ describe('getPublishedProducts', () => {
     await getPublishedProducts({ name: 'zapatillas urbanas', page: 1 });
 
     expect(firstFetchCall()?.[0]).toBe(
-      'http://api.friendly-e-shop.test/catalog/products/published?name=zapatillas+urbanas&page=1&size=24',
+      'http://api.friendly-e-shop.test/catalog/publish?name=zapatillas+urbanas&page=1&size=24',
     );
   });
 

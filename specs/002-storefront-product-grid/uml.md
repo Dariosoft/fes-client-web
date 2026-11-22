@@ -53,7 +53,7 @@ flowchart TB
   Storefront --> Hook["usePublishedProducts"]
   Hook --> Client["getPublishedProducts"]
   Client --> BaseUrl["getApiBaseUrl<br/>VITE_API_BASE_URL"]
-  Client --> CatalogApi["catalog-api<br/>GET /catalog/products/published"]
+  Client --> CatalogApi["catalog-api<br/>GET /catalog/publish"]
 
   Storefront --> Grid["ProductGrid"]
   Grid --> Card["ProductCard"]
@@ -138,7 +138,7 @@ classDiagram
 
 | Operación | Método | Path | Query | Credenciales |
 | --- | --- | --- | --- | --- |
-| Leer productos publicados | GET | `/catalog/products/published` | `name` opcional, `page` desde 1, `size=24` | `omit` |
+| Leer productos publicados | GET | `/catalog/publish` | `name` opcional, `page` desde 1, `size=24` | `omit` |
 
 El host se resuelve con `getApiBaseUrl()` a partir de `VITE_API_BASE_URL`. La tienda no envía cookies ni cabeceras de sesión.
 
@@ -166,7 +166,7 @@ sequenceDiagram
   end
   S->>H: usePublishedProducts(name, page)
   H->>C: getPublishedProducts({ name, page, signal })
-  C->>A: GET /catalog/products/published?name&page&size=24<br/>credentials omit
+  C->>A: GET /catalog/publish?name&page&size=24<br/>credentials omit
   alt respuesta válida
     A-->>C: 200 { items, page, size, totalItems, totalPages }
     C-->>H: PublishedProductsResponse validada
@@ -203,7 +203,7 @@ sequenceDiagram
   P->>R: ?name=<término activo>&page=N
   R-->>S: cambian searchParams
   S->>H: usePublishedProducts(name, N)
-  H->>A: GET /catalog/products/published?name&page=N&size=24
+  H->>A: GET /catalog/publish?name&page=N&size=24
   A-->>H: items de la página N + totales
   H-->>S: success
   S-->>V: 24 productos de la página N y paginación actualizada

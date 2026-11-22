@@ -1,5 +1,5 @@
 export const CATALOG_PATHS = {
-  publishedProducts: '/catalog/products/published',
+  publishedProducts: '/catalog/publish',
 } as const;
 
 export const CATALOG_QUERY_PARAMS = {

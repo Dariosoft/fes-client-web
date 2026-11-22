@@ -12,7 +12,7 @@ Desglose incremental de `specs/002-storefront-product-grid/plan.md`. Cada tarea 
 - [x] **T2. Crear `src/app/shared/api/catalog/constants.ts` y `types.ts`.**
   **Depende de:** nada.
   **RF:** RF-2, RF-3, RF-12
-  **Done when:** el path `/catalog/products/published`, los parámetros `name`/`page`/`size` y los tipos `PublishedProduct`, `ProductImage` y `PublishedProductsResponse` reflejan el contrato acordado con `catalog-api`.
+  **Done when:** el path `/catalog/publish`, los parámetros `name`/`page`/`size` y los tipos `PublishedProduct`, `ProductImage` y `PublishedProductsResponse` reflejan el contrato acordado con `catalog-api`.
 
 - [x] **T3. Implementar y probar `shared/api/catalog/get-published-products/`.**
   **Depende de:** T2.

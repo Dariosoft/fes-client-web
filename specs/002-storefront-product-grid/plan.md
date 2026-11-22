@@ -76,7 +76,7 @@ src/app/
 | Área | Responsabilidad |
 | --- | --- |
 | `shared/config/catalog-search.ts` | Nombres estables de los parámetros de URL, `size` 24 y tope de 100 caracteres. |
-| `shared/api/catalog/constants.ts` | Path público `/catalog/products/published` y nombres de parámetros de la API. |
+| `shared/api/catalog/constants.ts` | Path público `/catalog/publish` y nombres de parámetros de la API. |
 | `shared/api/catalog/types.ts` | DTOs de la respuesta pública. |
 | `get-published-products` | Construir la URL, ejecutar `fetch`, validar la forma JSON y propagar errores y abortos. |
 | `views/Layout/ProductSearch` | Formulario del header; aplica el término y vuelve a la página 1. |
@@ -92,7 +92,7 @@ src/app/
 
 La tienda consume el contrato público definido por `catalog-api`:
 
-- Operación: `GET {VITE_API_BASE_URL}/catalog/products/published`.
+- Operación: `GET {VITE_API_BASE_URL}/catalog/publish`.
 - Parámetros de consulta: `name` (opcional), `page` (desde 1) y `size` (se envía 24).
 - Sin credenciales: `credentials: 'omit'`.
 - Respuesta válida:
