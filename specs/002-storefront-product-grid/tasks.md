@@ -12,9 +12,9 @@ Desglose incremental de `specs/002-storefront-product-grid/plan.md`. Cada tarea 
 - [x] **T2. Crear `src/app/shared/api/catalog/constants.ts` y `types.ts`.**
   **Depende de:** nada.
   **RF:** RF-2, RF-3, RF-12
-  **Done when:** el path `/catalog/publish`, los parámetros `name`/`page`/`size` y los tipos `PublishedProduct`, `ProductImage` y `PublishedProductsResponse` reflejan el contrato acordado con `catalog-api`.
+  **Done when:** el path `/catalog/publication`, los parámetros `name`/`page`/`size` y los tipos `Publication`, `ProductImage` y `PublicationsResponse` reflejan el contrato acordado con `catalog-api`.
 
-- [x] **T3. Implementar y probar `shared/api/catalog/get-published-products/`.**
+- [x] **T3. Implementar y probar `shared/api/catalog/get-publications/`.**
   **Depende de:** T2.
   **RF:** RF-2, RF-3, RF-9, RF-15, RF-19, RF-21
   **Done when:** la URL incluye `page` y `size=24`, agrega `name` solo cuando hay texto, usa `credentials: 'omit'`, valida la respuesta completa y lanza error ante HTTP fallido, JSON inválido o campos faltantes; los tests cubren cada caso y el aborto.
@@ -31,7 +31,7 @@ Desglose incremental de `specs/002-storefront-product-grid/plan.md`. Cada tarea 
 
 ## Datos y componentes de la grilla
 
-- [x] **T6. Implementar y probar `views/Storefront/hooks/use-published-products/`.**
+- [x] **T6. Implementar y probar `views/Storefront/hooks/use-publications/`.**
   **Depende de:** T3.
   **RF:** RF-2, RF-9, RF-15, RF-16, RF-19
   **Done when:** expone `state` (`loading`, `success`, `error`) y `retry`; aborta al cambiar `name`/`page` o al desmontar; ignora respuestas viejas y no convierte un aborto en error; los tests cubren éxito, fallo, reintento y cancelación.

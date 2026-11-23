@@ -1,12 +1,12 @@
 import { ImageOff } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
-import type { PublishedProduct } from '../../../shared/api/catalog/types';
+import type { Publication } from '../../../shared/api/catalog/types';
 import { STOREFRONT_COPY } from '../constants';
 import { formatPrice } from '../lib/format-price/format-price';
 import { ProductImageCarousel } from '../ProductImageCarousel/ProductImageCarousel';
 
 type ProductCardProps = {
-  product: PublishedProduct;
+  product: Publication;
 };
 
 const SCROLL_PIXELS_PER_SECOND = 60;

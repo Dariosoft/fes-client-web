@@ -2,11 +2,11 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import type { PublishedProduct, PublishedProductsResponse } from '../../shared/api/catalog/types';
+import type { Publication, PublicationsResponse } from '../../shared/api/catalog/types';
 import { Layout } from '../Layout/Layout';
 import { Storefront } from './Storefront';
 
-function buildProducts(count: number): PublishedProduct[] {
+function buildProducts(count: number): Publication[] {
   return Array.from({ length: count }, (_value, index) => ({
     id: `product-${String(index + 1)}`,
     name: `Producto ${String(index + 1)}`,
@@ -17,7 +17,7 @@ function buildProducts(count: number): PublishedProduct[] {
   }));
 }
 
-function catalogResponse(overrides: Partial<PublishedProductsResponse> = {}) {
+function catalogResponse(overrides: Partial<PublicationsResponse> = {}) {
   return {
     items: buildProducts(24),
     page: 1,

@@ -1,9 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { PublishedProduct } from '../../../shared/api/catalog/types';
+import type { Publication } from '../../../shared/api/catalog/types';
 import { ProductCard } from './ProductCard';
 
-function buildProduct(overrides: Partial<PublishedProduct> = {}): PublishedProduct {
+function buildProduct(overrides: Partial<Publication> = {}): Publication {
   return {
     id: 'product-1',
     name: 'Zapatillas urbanas',

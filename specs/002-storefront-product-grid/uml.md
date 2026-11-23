@@ -10,9 +10,9 @@ src/app/
 │   ├── api/catalog/
 │   │   ├── constants.ts
 │   │   ├── types.ts
-│   │   └── get-published-products/
-│   │       ├── get-published-products.ts
-│   │       └── get-published-products.test.ts
+│   │   └── get-publications/
+│   │       ├── get-publications.ts
+│   │       └── get-publications.test.ts
 │   └── config/
 │       ├── api-base-url.ts
 │       └── catalog-search.ts
@@ -27,7 +27,7 @@ src/app/
         ├── Storefront.tsx
         ├── Storefront.test.tsx
         ├── constants.ts
-        ├── hooks/use-published-products/
+        ├── hooks/use-publications/
         ├── lib/read-catalog-search/
         ├── lib/format-price/
         ├── ProductGrid/
@@ -50,10 +50,10 @@ flowchart TB
 
   Search --> SearchConfig["CATALOG_SEARCH_PARAMS<br/>page=1 + name"]
   Storefront --> ReadSearch["readCatalogSearch<br/>normaliza name y page"]
-  Storefront --> Hook["usePublishedProducts"]
-  Hook --> Client["getPublishedProducts"]
+  Storefront --> Hook["usePublications"]
+  Hook --> Client["getPublications"]
   Client --> BaseUrl["getApiBaseUrl<br/>VITE_API_BASE_URL"]
-  Client --> CatalogApi["catalog-api<br/>GET /catalog/publish"]
+  Client --> CatalogApi["catalog-api<br/>GET /catalog/publication"]
 
   Storefront --> Grid["ProductGrid"]
   Grid --> Card["ProductCard"]
@@ -70,15 +70,15 @@ flowchart TB
 
 ```mermaid
 classDiagram
-  class PublishedProductsResponse {
-    +List~PublishedProduct~ items
+  class PublicationsResponse {
+    +List~Publication~ items
     +number page
     +number size
     +number totalItems
     +number totalPages
   }
 
-  class PublishedProduct {
+  class Publication {
     +string id
     +string name
     +number price
@@ -104,29 +104,29 @@ classDiagram
     +normalizeCatalogSearchTerm(raw) string
   }
 
-  class GetPublishedProductsInput {
+  class GetPublicationsInput {
     +string name
     +number page
     +AbortSignal signal
   }
 
-  class GetPublishedProducts {
-    +getPublishedProducts(input) PublishedProductsResponse
+  class GetPublications {
+    +getPublications(input) PublicationsResponse
   }
 
-  class PublishedProductsState {
+  class PublicationsState {
     <<union>>
     +string status
-    +PublishedProductsResponse data
+    +PublicationsResponse data
     +Error error
   }
 
-  PublishedProductsResponse *-- PublishedProduct
-  PublishedProduct *-- ProductImage
+  PublicationsResponse *-- Publication
+  Publication *-- ProductImage
   CatalogSearch ..> CatalogSearchConfig
-  GetPublishedProducts ..> GetPublishedProductsInput
-  GetPublishedProducts ..> PublishedProductsResponse
-  PublishedProductsState ..> PublishedProductsResponse
+  GetPublications ..> GetPublicationsInput
+  GetPublications ..> PublicationsResponse
+  PublicationsState ..> PublicationsResponse
 ```
 
 - `price` se recibe como número JSON (`BigDecimal` serializado por `catalog-api`).
@@ -138,7 +138,7 @@ classDiagram
 
 | Operación | Método | Path | Query | Credenciales |
 | --- | --- | --- | --- | --- |
-| Leer productos publicados | GET | `/catalog/publish` | `name` opcional, `page` desde 1, `size=24` | `omit` |
+| Leer productos publicados | GET | `/catalog/publication` | `name` opcional, `page` desde 1, `size=24` | `omit` |
 
 El host se resuelve con `getApiBaseUrl()` a partir de `VITE_API_BASE_URL`. La tienda no envía cookies ni cabeceras de sesión.
 
@@ -151,8 +151,8 @@ sequenceDiagram
   participant R as Router/URL
   participant S as Storefront
   participant RS as readCatalogSearch
-  participant H as usePublishedProducts
-  participant C as getPublishedProducts
+  participant H as usePublications
+  participant C as getPublications
   participant A as catalog-api
 
   V->>PS: escribe término y presiona Enter o la lupa
@@ -164,12 +164,12 @@ sequenceDiagram
   opt page presente e inválida
     S->>R: replace ?name=...&page=1
   end
-  S->>H: usePublishedProducts(name, page)
-  H->>C: getPublishedProducts({ name, page, signal })
-  C->>A: GET /catalog/publish?name&page&size=24<br/>credentials omit
+  S->>H: usePublications(name, page)
+  H->>C: getPublications({ name, page, signal })
+  C->>A: GET /catalog/publication?name&page&size=24<br/>credentials omit
   alt respuesta válida
     A-->>C: 200 { items, page, size, totalItems, totalPages }
-    C-->>H: PublishedProductsResponse validada
+    C-->>H: PublicationsResponse validada
     H-->>S: state success
     alt page > totalPages o totalPages = 0 con page > 1
       S->>R: replace ?name=...&page=1
@@ -196,14 +196,14 @@ sequenceDiagram
   participant P as ProductGridPagination
   participant R as Router/URL
   participant S as Storefront
-  participant H as usePublishedProducts
+  participant H as usePublications
   participant A as catalog-api
 
   V->>P: elige Página N
   P->>R: ?name=<término activo>&page=N
   R-->>S: cambian searchParams
-  S->>H: usePublishedProducts(name, N)
-  H->>A: GET /catalog/publish?name&page=N&size=24
+  S->>H: usePublications(name, N)
+  H->>A: GET /catalog/publication?name&page=N&size=24
   A-->>H: items de la página N + totales
   H-->>S: success
   S-->>V: 24 productos de la página N y paginación actualizada

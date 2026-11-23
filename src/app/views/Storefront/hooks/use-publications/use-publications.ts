@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
-import { getPublishedProducts } from '../../../../shared/api/catalog/get-published-products/get-published-products';
-import type { PublishedProductsResponse } from '../../../../shared/api/catalog/types';
+import { getPublications } from '../../../../shared/api/catalog/get-publications/get-publications';
+import type { PublicationsResponse } from '../../../../shared/api/catalog/types';
 
-export type PublishedProductsState =
+export type PublicationsState =
   | { status: 'loading'; data: null; error: null }
-  | { status: 'success'; data: PublishedProductsResponse; error: null }
+  | { status: 'success'; data: PublicationsResponse; error: null }
   | { status: 'error'; data: null; error: Error };
 
 type SettledRequest =
-  | { key: string; status: 'success'; data: PublishedProductsResponse }
+  | { key: string; status: 'success'; data: PublicationsResponse }
   | { key: string; status: 'error'; error: Error };
 
-const LOADING_STATE: PublishedProductsState = { status: 'loading', data: null, error: null };
+const LOADING_STATE: PublicationsState = { status: 'loading', data: null, error: null };
 
 function createRequestKey(name: string, page: number, size: number, attempt: number): string {
   return `${name}\u0000${String(page)}\u0000${String(size)}\u0000${String(attempt)}`;
@@ -21,11 +21,11 @@ function toError(value: unknown): Error {
   return value instanceof Error ? value : new Error(String(value));
 }
 
-export function usePublishedProducts(
+export function usePublications(
   name: string,
   page: number,
   size: number,
-): { state: PublishedProductsState; retry: () => void } {
+): { state: PublicationsState; retry: () => void } {
   const [attempt, setAttempt] = useState(0);
   const [settled, setSettled] = useState<SettledRequest | null>(null);
   const requestKey = createRequestKey(name, page, size, attempt);
@@ -34,7 +34,7 @@ export function usePublishedProducts(
     const controller = new AbortController();
     const effectKey = createRequestKey(name, page, size, attempt);
 
-    getPublishedProducts({ name, page, size, signal: controller.signal }).then(
+    getPublications({ name, page, size, signal: controller.signal }).then(
       (data) => {
         if (controller.signal.aborted) {
           return;
@@ -56,7 +56,7 @@ export function usePublishedProducts(
     };
   }, [name, page, size, attempt]);
 
-  const state: PublishedProductsState =
+  const state: PublicationsState =
     settled?.key === requestKey
       ? settled.status === 'success'
         ? { status: 'success', data: settled.data, error: null }

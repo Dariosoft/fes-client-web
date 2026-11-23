@@ -1,8 +1,8 @@
 import { getApiBaseUrl } from '../../../config/api-base-url';
 import { CATALOG_PATHS, CATALOG_QUERY_PARAMS } from '../constants';
-import type { ProductImage, PublishedProduct, PublishedProductsResponse } from '../types';
+import type { ProductImage, Publication, PublicationsResponse } from '../types';
 
-export type GetPublishedProductsInput = {
+export type GetPublicationsInput = {
   name: string;
   page: number;
   size: number;
@@ -21,7 +21,7 @@ function isProductImage(value: unknown): value is ProductImage {
   return isRecord(value) && typeof value.id === 'string' && typeof value.url === 'string';
 }
 
-function isPublishedProduct(value: unknown): value is PublishedProduct {
+function isPublication(value: unknown): value is Publication {
   return (
     isRecord(value) &&
     typeof value.id === 'string' &&
@@ -36,11 +36,11 @@ function isPublishedProduct(value: unknown): value is PublishedProduct {
   );
 }
 
-function isPublishedProductsResponse(value: unknown): value is PublishedProductsResponse {
+function isPublicationsResponse(value: unknown): value is PublicationsResponse {
   return (
     isRecord(value) &&
     Array.isArray(value.items) &&
-    value.items.every(isPublishedProduct) &&
+    value.items.every(isPublication) &&
     isCount(value.page, 1) &&
     isCount(value.size, 1) &&
     isCount(value.totalItems, 0) &&
@@ -48,10 +48,10 @@ function isPublishedProductsResponse(value: unknown): value is PublishedProducts
   );
 }
 
-export async function getPublishedProducts(
-  input: GetPublishedProductsInput,
-): Promise<PublishedProductsResponse> {
-  const url = new URL(`${getApiBaseUrl()}${CATALOG_PATHS.publishedProducts}`);
+export async function getPublications(
+  input: GetPublicationsInput,
+): Promise<PublicationsResponse> {
+  const url = new URL(`${getApiBaseUrl()}${CATALOG_PATHS.publications}`);
 
   if (input.name !== '') {
     url.searchParams.set(CATALOG_QUERY_PARAMS.name, input.name);
@@ -72,7 +72,7 @@ export async function getPublishedProducts(
 
   const payload: unknown = await response.json();
 
-  if (!isPublishedProductsResponse(payload)) {
+  if (!isPublicationsResponse(payload)) {
     throw new Error('Catalog response shape is invalid');
   }
 

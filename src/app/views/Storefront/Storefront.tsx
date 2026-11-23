@@ -4,10 +4,10 @@ import {
   CATALOG_PAGE_SIZE,
   CATALOG_SEARCH_PARAMS,
 } from '../../shared/config/catalog-search';
-import type { PublishedProduct } from '../../shared/api/catalog/types';
+import type { Publication } from '../../shared/api/catalog/types';
 import { STOREFRONT_COPY } from './constants';
-import { usePublishedProducts } from './hooks/use-published-products/use-published-products';
-import type { PublishedProductsState } from './hooks/use-published-products/use-published-products';
+import { usePublications } from './hooks/use-publications/use-publications';
+import type { PublicationsState } from './hooks/use-publications/use-publications';
 import { readCatalogSearch } from './lib/read-catalog-search/read-catalog-search';
 import { CatalogToolbar } from './CatalogToolbar/CatalogToolbar';
 import { ProductGrid } from './ProductGrid/ProductGrid';
@@ -17,7 +17,7 @@ type StorefrontContent =
   | { kind: 'loading' }
   | { kind: 'error' }
   | { kind: 'empty'; searchTerm: string }
-  | { kind: 'grid'; products: PublishedProduct[]; totalPages: number };
+  | { kind: 'grid'; products: Publication[]; totalPages: number };
 
 function createCatalogSearchParams(name: string, page: number, size: number): URLSearchParams {
   const params = new URLSearchParams();
@@ -36,7 +36,7 @@ function createCatalogSearchParams(name: string, page: number, size: number): UR
 }
 
 function resolveContent(
-  state: PublishedProductsState,
+  state: PublicationsState,
   searchTerm: string,
   shouldShowLoading: boolean,
 ): StorefrontContent {
@@ -58,7 +58,7 @@ function resolveContent(
 export function Storefront() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { name, page, size, shouldCanonicalizeSearch } = readCatalogSearch(searchParams);
-  const { state, retry } = usePublishedProducts(name, page, size);
+  const { state, retry } = usePublications(name, page, size);
   const totalPages = state.status === 'success' ? state.data.totalPages : 0;
   const isPageOutOfRange =
     state.status === 'success' && (totalPages === 0 ? page > 1 : page > totalPages);

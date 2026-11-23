@@ -1,14 +1,14 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getPublishedProducts } from '../../../../shared/api/catalog/get-published-products/get-published-products';
-import type { PublishedProductsResponse } from '../../../../shared/api/catalog/types';
-import { usePublishedProducts } from './use-published-products';
+import { getPublications } from '../../../../shared/api/catalog/get-publications/get-publications';
+import type { PublicationsResponse } from '../../../../shared/api/catalog/types';
+import { usePublications } from './use-publications';
 
-vi.mock('../../../../shared/api/catalog/get-published-products/get-published-products');
+vi.mock('../../../../shared/api/catalog/get-publications/get-publications');
 
-const getPublishedProductsMock = vi.mocked(getPublishedProducts);
+const getPublicationsMock = vi.mocked(getPublications);
 
-function catalogPage(page: number, totalPages = 3): PublishedProductsResponse {
+function catalogPage(page: number, totalPages = 3): PublicationsResponse {
   return {
     items: [
       {
@@ -36,20 +36,20 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-describe('usePublishedProducts', () => {
+describe('usePublications', () => {
   beforeEach(() => {
-    getPublishedProductsMock.mockReset();
+    getPublicationsMock.mockReset();
   });
 
   it('starts loading and resolves the first page', async () => {
-    getPublishedProductsMock.mockResolvedValue(catalogPage(1));
+    getPublicationsMock.mockResolvedValue(catalogPage(1));
 
-    const { result } = renderHook(() => usePublishedProducts('', 1, 24));
+    const { result } = renderHook(() => usePublications('', 1, 24));
 
     expect(result.current.state.status).toBe('loading');
     await waitFor(() => expect(result.current.state.status).toBe('success'));
     expect(result.current.state.data?.page).toBe(1);
-    expect(getPublishedProductsMock).toHaveBeenCalledWith({
+    expect(getPublicationsMock).toHaveBeenCalledWith({
       name: '',
       page: 1,
       size: 24,
@@ -58,20 +58,20 @@ describe('usePublishedProducts', () => {
   });
 
   it('exposes an error when the request fails', async () => {
-    getPublishedProductsMock.mockRejectedValue(new Error('network down'));
+    getPublicationsMock.mockRejectedValue(new Error('network down'));
 
-    const { result } = renderHook(() => usePublishedProducts('', 1, 24));
+    const { result } = renderHook(() => usePublications('', 1, 24));
 
     await waitFor(() => expect(result.current.state.status).toBe('error'));
     expect(result.current.state.error?.message).toBe('network down');
   });
 
   it('retries the request and recovers', async () => {
-    getPublishedProductsMock
+    getPublicationsMock
       .mockRejectedValueOnce(new Error('network down'))
       .mockResolvedValueOnce(catalogPage(1));
 
-    const { result } = renderHook(() => usePublishedProducts('', 1, 24));
+    const { result } = renderHook(() => usePublications('', 1, 24));
     await waitFor(() => expect(result.current.state.status).toBe('error'));
 
     act(() => {
@@ -80,29 +80,29 @@ describe('usePublishedProducts', () => {
 
     expect(result.current.state.status).toBe('loading');
     await waitFor(() => expect(result.current.state.status).toBe('success'));
-    expect(getPublishedProductsMock).toHaveBeenCalledTimes(2);
+    expect(getPublicationsMock).toHaveBeenCalledTimes(2);
   });
 
   it('aborts the previous request and reloads when the query changes', () => {
-    getPublishedProductsMock.mockImplementation(() => new Promise(() => undefined));
+    getPublicationsMock.mockImplementation(() => new Promise(() => undefined));
 
-    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page, 24), {
+    const { result, rerender } = renderHook(({ page }) => usePublications('', page, 24), {
       initialProps: { page: 1 },
     });
-    const firstSignal = getPublishedProductsMock.mock.calls[0]?.[0].signal;
+    const firstSignal = getPublicationsMock.mock.calls[0]?.[0].signal;
 
     rerender({ page: 2 });
 
     expect(firstSignal?.aborted).toBe(true);
-    expect(getPublishedProductsMock).toHaveBeenCalledTimes(2);
+    expect(getPublicationsMock).toHaveBeenCalledTimes(2);
     expect(result.current.state.status).toBe('loading');
   });
 
   it('aborts on unmount', () => {
-    getPublishedProductsMock.mockImplementation(() => new Promise(() => undefined));
+    getPublicationsMock.mockImplementation(() => new Promise(() => undefined));
 
-    const { unmount } = renderHook(() => usePublishedProducts('', 1, 24));
-    const signal = getPublishedProductsMock.mock.calls[0]?.[0].signal;
+    const { unmount } = renderHook(() => usePublications('', 1, 24));
+    const signal = getPublicationsMock.mock.calls[0]?.[0].signal;
 
     unmount();
 
@@ -110,13 +110,13 @@ describe('usePublishedProducts', () => {
   });
 
   it('ignores a stale response that resolves after the query changed', async () => {
-    const firstRequest = deferred<PublishedProductsResponse>();
-    const secondRequest = deferred<PublishedProductsResponse>();
-    getPublishedProductsMock
+    const firstRequest = deferred<PublicationsResponse>();
+    const secondRequest = deferred<PublicationsResponse>();
+    getPublicationsMock
       .mockReturnValueOnce(firstRequest.promise)
       .mockReturnValueOnce(secondRequest.promise);
 
-    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page, 24), {
+    const { result, rerender } = renderHook(({ page }) => usePublications('', page, 24), {
       initialProps: { page: 1 },
     });
 
@@ -136,7 +136,7 @@ describe('usePublishedProducts', () => {
   });
 
   it('does not turn an abort into an error', async () => {
-    getPublishedProductsMock.mockImplementation(
+    getPublicationsMock.mockImplementation(
       ({ signal }) =>
         new Promise((_resolve, reject) => {
           signal?.addEventListener('abort', () => {
@@ -145,7 +145,7 @@ describe('usePublishedProducts', () => {
         }),
     );
 
-    const { result, rerender } = renderHook(({ page }) => usePublishedProducts('', page, 24), {
+    const { result, rerender } = renderHook(({ page }) => usePublications('', page, 24), {
       initialProps: { page: 1 },
     });
 

@@ -3,7 +3,7 @@ export type ProductImage = {
   url: string;
 };
 
-export type PublishedProduct = {
+export type Publication = {
   id: string;
   name: string;
   price: number;
@@ -12,8 +12,8 @@ export type PublishedProduct = {
   images: ProductImage[];
 };
 
-export type PublishedProductsResponse = {
-  items: PublishedProduct[];
+export type PublicationsResponse = {
+  items: Publication[];
   page: number;
   size: number;
   totalItems: number;

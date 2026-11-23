@@ -27,9 +27,9 @@ src/app/
 │   │   └── catalog/
 │   │       ├── constants.ts
 │   │       ├── types.ts
-│   │       └── get-published-products/
-│   │           ├── get-published-products.ts
-│   │           └── get-published-products.test.ts
+│   │       └── get-publications/
+│   │           ├── get-publications.ts
+│   │           └── get-publications.test.ts
 │   ├── config/
 │   │   ├── api-base-url.ts                 # existente
 │   │   └── catalog-search.ts               # params de URL, tamaño de página y tope del término
@@ -47,9 +47,9 @@ src/app/
         ├── Storefront.test.tsx
         ├── constants.ts                    # copias en español y variantes de estado
         ├── hooks/
-        │   └── use-published-products/
-        │       ├── use-published-products.ts
-        │       └── use-published-products.test.tsx
+        │   └── use-publications/
+        │       ├── use-publications.ts
+        │       └── use-publications.test.tsx
         ├── lib/
         │   ├── read-catalog-search/
         │   │   ├── read-catalog-search.ts
@@ -76,12 +76,12 @@ src/app/
 | Área | Responsabilidad |
 | --- | --- |
 | `shared/config/catalog-search.ts` | Nombres estables de los parámetros de URL, `size` 24 y tope de 100 caracteres. |
-| `shared/api/catalog/constants.ts` | Path público `/catalog/publish` y nombres de parámetros de la API. |
+| `shared/api/catalog/constants.ts` | Path público `/catalog/publication` y nombres de parámetros de la API. |
 | `shared/api/catalog/types.ts` | DTOs de la respuesta pública. |
-| `get-published-products` | Construir la URL, ejecutar `fetch`, validar la forma JSON y propagar errores y abortos. |
+| `get-publications` | Construir la URL, ejecutar `fetch`, validar la forma JSON y propagar errores y abortos. |
 | `views/Layout/ProductSearch` | Formulario del header; aplica el término y vuelve a la página 1. |
 | `views/Storefront/Storefront.tsx` | Leer la URL, normalizarla, pedir productos, corregir la página y componer los estados. |
-| `hooks/use-published-products` | Estado de la lectura: `loading`, `success`, `error`, con reintento y cancelación. |
+| `hooks/use-publications` | Estado de la lectura: `loading`, `success`, `error`, con reintento y cancelación. |
 | `lib/read-catalog-search` | Normalizar `name` y `page`; detectar página inválida que debe reflejarse en la URL. |
 | `lib/format-price` | Formatear el precio en es-AR con símbolo de moneda. |
 | `ProductGrid`, `ProductCard`, `ProductGridPagination`, `ProductGridStatus` | Render presentacional de grilla, tarjetas, paginación y estados. |
@@ -92,7 +92,7 @@ src/app/
 
 La tienda consume el contrato público definido por `catalog-api`:
 
-- Operación: `GET {VITE_API_BASE_URL}/catalog/publish`.
+- Operación: `GET {VITE_API_BASE_URL}/catalog/publication`.
 - Parámetros de consulta: `name` (opcional), `page` (desde 1) y `size` (se envía 24).
 - Sin credenciales: `credentials: 'omit'`.
 - Respuesta válida:
@@ -162,18 +162,18 @@ Contrato de URL de la tienda:
 
 **Cubre:** RF-8, RF-9, RF-10, RF-11, RF-22.
 
-## Cliente `get-published-products`
+## Cliente `get-publications`
 
 Firma prevista:
 
 ```ts
-type GetPublishedProductsInput = {
+type GetPublicationsInput = {
   name: string;
   page: number;
   signal?: AbortSignal;
 };
 
-function getPublishedProducts(input: GetPublishedProductsInput): Promise<PublishedProductsResponse>;
+function getPublications(input: GetPublicationsInput): Promise<PublicationsResponse>;
 ```
 
 Implementación:
@@ -221,25 +221,25 @@ La corrección se ejecuta en un efecto porque navega a una URL distinta de la so
 
 **Cubre:** RF-8, RF-9, RF-10, RF-11, RF-15, RF-22, RF-23, RF-24.
 
-## Hook `use-published-products`
+## Hook `use-publications`
 
-`src/app/views/Storefront/hooks/use-published-products/use-published-products.ts`:
+`src/app/views/Storefront/hooks/use-publications/use-publications.ts`:
 
 ```ts
-type PublishedProductsState =
+type PublicationsState =
   | { status: 'loading'; data: null; error: null }
-  | { status: 'success'; data: PublishedProductsResponse; error: null }
+  | { status: 'success'; data: PublicationsResponse; error: null }
   | { status: 'error'; data: null; error: Error };
 
-function usePublishedProducts(name: string, page: number): {
-  state: PublishedProductsState;
+function usePublications(name: string, page: number): {
+  state: PublicationsState;
   retry: () => void;
 };
 ```
 
 Comportamiento:
 
-- Se monta en `loading`, llama a `getPublishedProducts` y pasa a `success` o `error`.
+- Se monta en `loading`, llama a `getPublications` y pasa a `success` o `error`.
 - `AbortController` en cada efecto; el cleanup aborta al cambiar `name`, `page` o al desmontar. Un aborto no cambia el estado.
 - Un contador de intentos (`retry`) vuelve a ejecutar la lectura y regresa a `loading`; es la acción del botón de reintento (RF-19).
 - La respuesta se asigna solo si la solicitud sigue vigente, evitando que una respuesta vieja pise a una nueva.
@@ -290,7 +290,7 @@ Pruebas: render del formulario, envío con Enter, envío con la lupa, recorte a 
 1. `useSearchParams()` para leer la URL.
 2. `readCatalogSearch` para obtener `{ name, page, shouldCanonicalizePage }`.
 3. Efecto de canonicalización cuando `shouldCanonicalizePage` es verdadero: `setSearchParams` con `replace: true`.
-4. `usePublishedProducts(name, page)` para la lectura.
+4. `usePublications(name, page)` para la lectura.
 5. Detección de página fuera de rango durante el render: `success` con `page > totalPages`, o `totalPages === 0` con `page > 1`. Mientras el indicador sea verdadero se renderiza carga y un efecto reemplaza la URL con `page=1`; nunca se muestran los datos de la página ajustada por la API.
 6. Render de `<section aria-label="Productos">` sin título visible y uno de los estados (RF-31).
 
@@ -373,9 +373,9 @@ La grilla:
 
 | Nivel | Archivos | Qué verifica |
 | --- | --- | --- |
-| Cliente API | `get-published-products.test.ts` | URL, query, `size`, `credentials`, validación, HTTP y aborto. |
+| Cliente API | `get-publications.test.ts` | URL, query, `size`, `credentials`, validación, HTTP y aborto. |
 | Utilidades | `read-catalog-search.test.ts`, `format-price.test.ts` | Página inválida, recorte a 100, vacío, es-AR, ARS/USD. |
-| Hook | `use-published-products.test.tsx` | Carga, éxito, error, reintento, aborto y respuestas viejas. |
+| Hook | `use-publications.test.tsx` | Carga, éxito, error, reintento, aborto y respuestas viejas. |
 | Componentes | `ProductCard.test.tsx`, `ProductGrid.test.tsx`, `ProductGridPagination.test.tsx`, `ProductGridStatus.test.tsx` | Imagen y marcador, precio, lista, ventana de páginas, totales, estados y reintento. |
 | Header | `ProductSearch.test.tsx`, `Layout.test.tsx` | Enter, lupa, tope de 100, URL, página 1, buscador visible y sesión intacta. |
 | Integración de vista | `Storefront.test.tsx` | URL → consulta → grilla, vacíos, error con reintento, cambio de página y corrección a página 1. |
@@ -389,7 +389,7 @@ La grilla:
 | RF | Cobertura técnica |
 | --- | --- |
 | RF-1 | `Storefront` deja de ser presentacional y compone grilla, paginación y estados. |
-| RF-2 | `getPublishedProducts` contra la lectura pública y `usePublishedProducts`. |
+| RF-2 | `getPublications` contra la lectura pública y `usePublications`. |
 | RF-3 | `size` de la URL (24 por defecto, máximo 100) enviado a la API; la grilla muestra como máximo ese tamaño. |
 | RF-4 | `ProductSearch` dentro del `header` de `Layout`. |
 | RF-5 | `onSubmit` del formulario aplica el término con Enter. |

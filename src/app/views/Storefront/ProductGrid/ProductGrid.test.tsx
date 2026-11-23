@@ -1,9 +1,9 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { PublishedProduct } from '../../../shared/api/catalog/types';
+import type { Publication } from '../../../shared/api/catalog/types';
 import { ProductGrid } from './ProductGrid';
 
-function buildProducts(count: number): PublishedProduct[] {
+function buildProducts(count: number): Publication[] {
   return Array.from({ length: count }, (_value, index) => ({
     id: `product-${String(index + 1)}`,
     name: `Producto ${String(index + 1)}`,

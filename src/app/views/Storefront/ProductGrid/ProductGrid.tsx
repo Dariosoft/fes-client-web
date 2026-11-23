@@ -1,8 +1,8 @@
-import type { PublishedProduct } from '../../../shared/api/catalog/types';
+import type { Publication } from '../../../shared/api/catalog/types';
 import { ProductCard } from '../ProductCard/ProductCard';
 
 type ProductGridProps = {
-  products: PublishedProduct[];
+  products: Publication[];
   size: number;
 };
 
