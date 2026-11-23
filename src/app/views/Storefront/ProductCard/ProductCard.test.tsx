@@ -80,20 +80,6 @@ describe('ProductCard', () => {
     expect(span.style.transform).toBe('translateX(0px)');
   });
 
-  it('reveals the clipped name on keyboard focus', () => {
-    mockClippedName();
-    render(<ProductCard product={buildProduct()} />);
-
-    const card = screen.getByRole('article');
-    const span = nameText(card);
-
-    fireEvent.focus(card);
-    expect(span.style.transform).toBe('translateX(-150px)');
-
-    fireEvent.blur(card);
-    expect(span.style.transform).toBe('translateX(0px)');
-  });
-
   it('does not move a name that fits on one line', () => {
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
       width: 120,
@@ -109,12 +95,12 @@ describe('ProductCard', () => {
     expect(span.style.transform).toBe('translateX(0px)');
   });
 
-  it('is focusable and shows no stock or purchase actions', () => {
+  it('is not focusable while it has no action and shows no stock or purchase actions', () => {
     render(<ProductCard product={buildProduct()} />);
 
     const card = screen.getByRole('article');
 
-    expect(card).toHaveAttribute('tabindex', '0');
+    expect(card).not.toHaveAttribute('tabindex');
     expect(card).toHaveAccessibleName('Zapatillas urbanas');
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.queryByText(/stock|disponibles/i)).not.toBeInTheDocument();

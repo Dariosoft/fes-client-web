@@ -53,13 +53,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <article
-      tabIndex={0}
       aria-labelledby={titleId}
       onMouseEnter={() => setRevealsName(true)}
       onMouseLeave={() => setRevealsName(false)}
-      onFocus={() => setRevealsName(true)}
-      onBlur={() => setRevealsName(false)}
-      className="flex h-full flex-col gap-2 rounded-2xl border-2 border-border bg-card p-2 transition-colors duration-200 ease-out hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none sm:gap-3 sm:p-3"
+      className="flex h-full flex-col gap-2 rounded-2xl border-2 border-border bg-card p-2 transition-colors duration-200 ease-out hover:border-primary motion-reduce:transition-none sm:gap-3 sm:p-3"
     >
       {product.images.length > 0 ? (
         <ProductImageCarousel images={product.images} productName={product.name} />

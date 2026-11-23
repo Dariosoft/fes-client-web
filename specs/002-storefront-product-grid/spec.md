@@ -49,7 +49,7 @@ El Storefront público hoy es una página de presentación que no muestra el sur
 ## Requisitos no funcionales
 - Textos de interfaz en español.
 - La grilla y el buscador son usables y legibles en anchos desde 320 px y en escritorio.
-- La grilla usa HTML semántico, es navegable con teclado y el foco es visible en el buscador, la lupa, las tarjetas y la paginación.
+- La grilla usa HTML semántico, es navegable con teclado y el foco es visible en el buscador, la lupa, el selector de tamaño, las flechas del carrusel y la paginación. La tarjeta no es enfocable porque todavía no tiene acción.
 - Al aplicar una búsqueda o cambiar de página, la tienda actualiza el contenido sin recargar el documento completo.
 - Se conserva el aspecto de escaparate de comercio electrónico / catálogo digital, amigable, moderno y eficiente, con el lenguaje visual existente.
 - No se expone lógica de servidor ni secretos en la tienda; solo se consumen los contratos públicos del catálogo.

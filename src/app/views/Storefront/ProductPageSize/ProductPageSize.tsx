@@ -19,7 +19,7 @@ export function ProductPageSize({ size, onSelectSize }: ProductPageSizeProps) {
   const [activeIndex, setActiveIndex] = useState(() => activeIndexFor(size));
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const listboxRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
   const listboxId = useId();
 
   useEffect(() => {
@@ -72,7 +72,7 @@ export function ProductPageSize({ size, onSelectSize }: ProductPageSizeProps) {
     }
   }
 
-  function handleListKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+  function handleListKeyDown(event: KeyboardEvent<HTMLUListElement>) {
     if (event.key === 'Escape') {
       event.preventDefault();
       close();
@@ -130,13 +130,16 @@ export function ProductPageSize({ size, onSelectSize }: ProductPageSizeProps) {
         </button>
 
         {isOpen ? (
-          <div
-            ref={listboxRef}
-            tabIndex={-1}
-            onKeyDown={handleListKeyDown}
-            className="absolute top-full right-0 z-30 mt-1 w-full min-w-24 overflow-hidden rounded-xl border-2 border-border bg-card shadow-lg outline-none"
-          >
-            <ul id={listboxId} role="listbox" aria-labelledby={`${listboxId}-label`}>
+          <div className="absolute top-full right-0 z-30 mt-1 w-full min-w-24 overflow-hidden rounded-xl border-2 border-border bg-card shadow-lg">
+            <ul
+              ref={listboxRef}
+              id={listboxId}
+              role="listbox"
+              aria-labelledby={`${listboxId}-label`}
+              tabIndex={-1}
+              onKeyDown={handleListKeyDown}
+              className="outline-none"
+            >
               {CATALOG_PAGE_SIZE_OPTIONS.map((option, index) => (
                 <li key={option} role="none">
                   <button

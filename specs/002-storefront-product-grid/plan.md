@@ -300,15 +300,15 @@ La grilla:
 - Cada `<li>` monta una `ProductCard` con `key={product.id}`.
 - Como máximo se muestran los productos del tamaño de página activo que devuelve la página (RF-3).
 - Las herramientas del listado se agrupan en `CatalogToolbar`: una fila (`flex flex-nowrap items-end justify-between`) con `ProductPageSize` a la izquierda y `ProductGridPagination` a la derecha, cuando hay más de una página. No envuelve a los componentes en tarjetas ni les agrega fondo, borde o sombra (RF-33, RF-34). La barra se renderiza una sola vez, al inicio del listado, también durante los estados de carga, vacío y error.
-- `ProductPageSize` muestra la leyenda `Productos por página` por encima del control (RF-32): un botón `aria-haspopup="listbox"` con el tamaño activo y un `ChevronDown`, que abre un `role="listbox"` anclado debajo del botón con las opciones `CATALOG_PAGE_SIZE_OPTIONS` (12, 24, 48, 64 y 100). Se usa un listbox propio en lugar de un `<select>` nativo porque en móvil el popup del navegador aparecía desanclado. Navegación con teclado (Enter, Space, flechas, Escape), cierre al hacer clic afuera y opción activa marcada con `aria-selected`. Al elegir otra opción navega a `?name=<término>&page=1&size=<n>`, lo que recarga la grilla desde la página 1 (RF-25, RF-26).
+- `ProductPageSize` muestra la leyenda `Productos por página` por encima del control (RF-32): un botón `aria-haspopup="listbox"` con el tamaño activo y un `ChevronDown`, que abre un `<ul role="listbox">` anclado debajo del botón (el `ul` es el que recibe el foco y el teclado, no el contenedor) con las opciones `CATALOG_PAGE_SIZE_OPTIONS` (12, 24, 48, 64 y 100). Se usa un listbox propio en lugar de un `<select>` nativo porque en móvil el popup del navegador aparecía desanclado. Navegación con teclado (Enter, Space, flechas, Escape), cierre al hacer clic afuera y opción activa marcada con `aria-selected`. Al elegir otra opción navega a `?name=<término>&page=1&size=<n>`, lo que recarga la grilla desde la página 1 (RF-25, RF-26).
 - `ProductGridPagination` muestra la leyenda `Página X de Y` encima de los controles y calcula cuántos números entran: un `ResizeObserver` sobre el `nav` mide el ancho disponible y el tamaño real del botón, y `resolveVisiblePageCount` devuelve la mayor cantidad impar que entra restando dos lugares para los `…`, acotada entre 5 y 9. Con eso arma siempre primera página, última página y una ventana alrededor de la activa, en un `<ul aria-label="Páginas">` con `flex-nowrap`: nunca pasa a dos filas y en escritorio llega a nueve pastillas. Si el número activo quedara fuera de vista, un efecto lo centra con `scrollIntoView`. Se oculta cuando hay una sola página (RF-35).
 
 `ProductCard`:
 
-- `<article tabIndex={0} aria-labelledby={titleId}>` con imagen, nombre y precio; el foco es visible con `focus-visible:outline-2` y la tarjeta se puede recorrer con teclado aunque en este corte no tenga acción de clic (RF-12 y requisito no funcional de foco).
+- `<article aria-labelledby={titleId}>` con imagen, nombre y precio. No lleva `tabIndex` ni estilos de foco porque todavía no tiene acción: la tarjeta no debe ser enfocable (RF-12 y requisito no funcional de foco).
 - Imagen: `ProductImageCarousel` dentro de un contenedor `aspect-square`. Con una sola foto muestra `<img src={url} alt={product.name} loading="lazy" decoding="async" class="object-cover">` sin controles; con varias agrega botones «Foto anterior» y «Foto siguiente» con íconos `ChevronLeft`/`ChevronRight` de `lucide-react`, navegación circular y un indicador `N / M` en `aria-live="polite"`. El `alt` incluye la posición (`<nombre> — N`) cuando hay varias.
 - Sin imágenes: bloque del mismo tamaño con el ícono `ImageOff` de `lucide-react`, `aria-hidden="true"` y un texto `sr-only` «Sin imagen» (RF-13).
-- Nombre: `<h2>` de una sola línea (`whitespace-nowrap`), con desvanecido en el borde derecho cuando el texto no entra. El `<span>` interno mide su desborde y, al pasar el mouse o al recibir foco la tarjeta, se desplaza horizontalmente a velocidad constante (60 px/s) hasta mostrar el final; al salir vuelve en 250 ms. Con `prefers-reduced-motion` no se desplaza.
+- Nombre: `<h2>` de una sola línea (`whitespace-nowrap`), con desvanecido en el borde derecho cuando el texto no entra. El `<span>` interno mide su desborde y, al pasar el mouse por la tarjeta, se desplaza horizontalmente a velocidad constante (60 px/s) hasta mostrar el final; al salir vuelve en 250 ms. Con `prefers-reduced-motion` no se desplaza.
 - Precio y moneda: `formatPrice(product.price, product.currency)` (RF-12).
 - No muestra stock, dueño, etapa ni acciones de compra.
 
@@ -355,7 +355,7 @@ La grilla:
 ## Accesibilidad, responsive y rendimiento
 
 - HTML semántico: `header`, `form role="search"`, `nav`, `ul`/`li`, `article`, encabezados jerárquicos.
-- Foco visible en buscador, lupa, tarjetas y botones de paginación; targets de al menos 44 px.
+- Foco visible en buscador, lupa, selector de tamaño, flechas del carrusel y botones de paginación; targets de al menos 44 px. Las tarjetas no son enfocables mientras no tengan acción.
 - Anuncios accesibles: `role="status"` para carga y `role="alert"` para error.
 - Responsive desde 320 px: una columna en móvil, dos desde `sm`, tres desde `lg`, cuatro desde `xl`; header con wrap controlado.
 - Se conservan los tokens de `src/styles.css` y el lenguaje visual de escaparate.
