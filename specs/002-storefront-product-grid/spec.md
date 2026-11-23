@@ -39,6 +39,12 @@ El Storefront público hoy es una página de presentación que no muestra el sur
 - RF-22: CUANDO se aplica un término de búsqueda nuevo, EL SISTEMA volverá a la página 1 y lo reflejará en la URL.
 - RF-23: SI la URL trae una `page` no numérica, menor a 1 o mayor al total de páginas, ENTONCES EL SISTEMA corregirá la navegación a la página 1 y lo reflejará en la URL.
 - RF-24: EL SISTEMA limitará el término del buscador a un máximo de 100 caracteres antes de aplicarlo.
+- RF-25: EL SISTEMA ofrecerá los tamaños de página 12, 24, 48, 64 y 100 para que el visitante elija cuántos productos ver por página.
+- RF-26: CUANDO el visitante elige otro tamaño de página, EL SISTEMA recargará la grilla desde la página 1, conservará el término de búsqueda y reflejará el tamaño en la URL.
+- RF-27: CUANDO el visitante aplica una búsqueda desde el header, EL SISTEMA conservará el tamaño de página activo.
+- RF-28: EN pantallas de escritorio, EL SISTEMA mantendrá el logo a la izquierda, el buscador al centro y las acciones de cuenta a la derecha en una sola fila.
+- RF-29: EN pantallas de teléfono, EL SISTEMA mostrará en la primera fila el logo a la izquierda y las acciones de cuenta al extremo derecho, y en la segunda fila el buscador a todo el ancho.
+- RF-30: DONDE la sesión esté iniciada, EL SISTEMA mostrará el nombre de la persona y un ícono para cerrar sesión; DONDE no lo esté, mostrará un ícono para entrar, con su nombre accesible.
 
 ## Requisitos no funcionales
 - Textos de interfaz en español.
@@ -77,3 +83,8 @@ El Storefront público hoy es una página de presentación que no muestra el sur
 - Demostración manual: la tienda muestra la grilla paginada de 24 en 24; el buscador del header envía el término con Enter y con la lupa y actualiza `?name=...&page=...`; recargar o compartir esa URL reproduce búsqueda y página; las tarjetas muestran imagen, nombre, precio y moneda, y el marcador cuando falta la imagen; se ven los estados de carga, vacío y error.
 - Comprobación de navegación: una búsqueda nueva vuelve a la página 1; una `page` inválida en la URL se corrige a la página 1 y se refleja en la URL; el término aplicado nunca supera los 100 caracteres; el estado de error permite reintentar.
 - Comprobación en tamaño móvil (desde 320 px) y escritorio de la vista afectada, con navegación por teclado.
+- RF-31: EL SISTEMA no mostrará un título sobre la grilla; la sección de productos se anunciará solo con su nombre accesible.
+- RF-32: EL SISTEMA mostrará la leyenda del tamaño de página por encima del control que opera el visitante.
+- RF-33: EL SISTEMA mostrará el selector de tamaño de página y, a su lado, el paginador cuando haya más de una página, en una sola fila al inicio del listado.
+- RF-34: EL SISTEMA mostrará el selector de tamaño de página y el paginador como componentes simples, uno al lado del otro (selector a la izquierda), sin contenedores ni tarjetas que los enmarquen, sin desbordar el ancho de la página desde 320 px.
+- RF-35: EL SISTEMA mostrará la leyenda `Página X de Y` por encima de los controles de paginación y ajustará la cantidad de números visibles al ancho disponible, entre cinco y nueve, siempre en una sola fila (primera página, última página y una ventana alrededor de la activa, con puntos suspensivos en los saltos), sin deslizamiento ni dos filas.

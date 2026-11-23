@@ -30,6 +30,12 @@ export function ProductSearch() {
       nextParams.set(CATALOG_SEARCH_PARAMS.name, term);
     }
 
+    const activeSize = searchParams.get(CATALOG_SEARCH_PARAMS.size);
+
+    if (activeSize !== null) {
+      nextParams.set(CATALOG_SEARCH_PARAMS.size, activeSize);
+    }
+
     void navigate({ pathname: '/', search: nextParams.toString() });
   }
 

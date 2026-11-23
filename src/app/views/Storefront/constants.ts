@@ -7,6 +7,7 @@ export const STOREFRONT_COPY = {
   emptySearchHint: 'Probá con otro nombre o revisá la ortografía.',
   error: 'No pudimos cargar los productos. Revisá tu conexión e intentá de nuevo.',
   retry: 'Reintentar',
+  pageSize: 'Productos por página',
   previousImage: 'Foto anterior',
   nextImage: 'Foto siguiente',
 } as const;

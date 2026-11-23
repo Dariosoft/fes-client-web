@@ -9,8 +9,8 @@ import { STOREFRONT_COPY } from './constants';
 import { usePublishedProducts } from './hooks/use-published-products/use-published-products';
 import type { PublishedProductsState } from './hooks/use-published-products/use-published-products';
 import { readCatalogSearch } from './lib/read-catalog-search/read-catalog-search';
+import { CatalogToolbar } from './CatalogToolbar/CatalogToolbar';
 import { ProductGrid } from './ProductGrid/ProductGrid';
-import { ProductGridPagination } from './ProductGridPagination/ProductGridPagination';
 import { ProductGridStatus } from './ProductGridStatus/ProductGridStatus';
 
 type StorefrontContent =
@@ -77,19 +77,23 @@ export function Storefront() {
     void setSearchParams(createCatalogSearchParams(name, nextPage, size));
   }
 
+  function handleSelectSize(nextSize: number) {
+    void setSearchParams(createCatalogSearchParams(name, 1, nextSize));
+  }
+
+  const paginationProps =
+    content.kind === 'grid'
+      ? { page, totalPages: content.totalPages, onSelectPage: handleSelectPage }
+      : {};
+
   return (
     <section
-      aria-labelledby="storefront-products-title"
+      aria-label={STOREFRONT_COPY.title}
       className="mx-auto w-full max-w-7xl px-4 py-10 md:px-8 md:py-14"
     >
-      <h1
-        id="storefront-products-title"
-        className="font-display text-3xl font-semibold text-foreground md:text-4xl"
-      >
-        {STOREFRONT_COPY.title}
-      </h1>
+      <div className="flex flex-col gap-4">
+        <CatalogToolbar size={size} onSelectSize={handleSelectSize} {...paginationProps} />
 
-      <div className="mt-6">
         {content.kind === 'loading' ? <ProductGridStatus status="loading" /> : null}
         {content.kind === 'error' ? (
           <ProductGridStatus status="error" onRetry={retry} />
@@ -97,16 +101,7 @@ export function Storefront() {
         {content.kind === 'empty' ? (
           <ProductGridStatus status="empty" searchTerm={content.searchTerm} />
         ) : null}
-        {content.kind === 'grid' ? (
-          <>
-            <ProductGrid products={content.products} size={size} />
-            <ProductGridPagination
-              page={page}
-              totalPages={content.totalPages}
-              onSelectPage={handleSelectPage}
-            />
-          </>
-        ) : null}
+        {content.kind === 'grid' ? <ProductGrid products={content.products} size={size} /> : null}
       </div>
     </section>
   );

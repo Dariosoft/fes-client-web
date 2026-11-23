@@ -106,4 +106,14 @@ describe('ProductSearch', () => {
       'mesa',
     );
   });
+
+  it('keeps the active page size when a new search is applied', async () => {
+    const user = userEvent.setup();
+    renderSearch('/?page=2&size=48');
+
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar productos por nombre' }), 'mesa');
+    await user.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    expect(currentLocation()).toBe('/?page=1&name=mesa&size=48');
+  });
 });

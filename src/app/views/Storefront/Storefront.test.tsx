@@ -202,6 +202,31 @@ describe('Storefront', () => {
     await waitFor(() => expect(requestedUrls.at(-1)?.searchParams.get('size')).toBe('4'));
   });
 
+  it('reloads from page 1 when the visitor picks another page size', async () => {
+    const user = userEvent.setup();
+    const requestedUrls = mockCatalogFetch((url) =>
+      jsonResponse(
+        catalogResponse({
+          page: Number(url.searchParams.get('page')),
+          size: Number(url.searchParams.get('size')),
+          items: buildProducts(2),
+          totalItems: 2,
+          totalPages: 1,
+        }),
+      ),
+    );
+
+    renderStorefront('/?name=mesa&page=2&size=24');
+    await screen.findByRole('heading', { name: 'Producto 1' });
+
+    await user.click(screen.getByRole('button', { name: 'Productos por página 24' }));
+    await user.click(screen.getByRole('option', { name: '48' }));
+
+    await waitFor(() => expect(currentLocation()).toBe('/?name=mesa&page=1&size=48'));
+    expect(requestedUrls.at(-1)?.searchParams.get('size')).toBe('48');
+    expect(requestedUrls.at(-1)?.searchParams.get('page')).toBe('1');
+  });
+
   it('drops an invalid page size and falls back to the default', async () => {
     const requestedUrls = mockCatalogFetch(() => jsonResponse(catalogResponse()));
 
@@ -337,6 +362,7 @@ describe('Storefront', () => {
     expect(screen.getByRole('searchbox', { name: 'Buscar productos por nombre' })).toHaveValue(
       'mesa',
     );
+    expect(screen.getByRole('button', { name: 'Productos por página 24' })).toBeInTheDocument();
 
     shouldFail = false;
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));

@@ -116,3 +116,10 @@ Desglose incremental de `specs/002-storefront-product-grid/plan.md`. Cada tarea 
   **Depende de:** T20.
   **RF:** RF-1 a RF-24
   **Done when:** se demuestra búsqueda con Enter y lupa, URL compartida/recargada, paginación con término activo, página inválida corregida a 1, tope de 100 caracteres, estados de carga/vacío/error con reintento y header usable en 320 px y escritorio.
+
+## Refinamiento de la barra del listado
+
+- [x] **T22. Reordenar la barra del listado y quitar el título de la sección.**
+  **Depende de:** T19.
+  **RF:** RF-31, RF-32, RF-33, RF-34, RF-35
+  **Done when:** `Storefront.tsx` no renderiza `<h1>` y anuncia la sección con `aria-label`; `CatalogToolbar` pone el selector de tamaño y el paginador uno al lado del otro, sin contenedores decorativos, una sola vez al inicio del listado; la leyenda del tamaño queda por encima del control; la paginación limita los números a cinco sin quebrar de fila y usa los controles compactos en teléfonos; `npm test` pasa y la barra no desborda entre 320 px y 1440 px.

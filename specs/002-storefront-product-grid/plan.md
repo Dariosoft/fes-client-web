@@ -154,7 +154,7 @@ export function normalizeCatalogSearchTerm(raw: string): string {
 
 Contrato de URL de la tienda:
 
-- Búsqueda aplicada: `/?name=<término>&page=<n>`, más `&size=<n>` cuando difiere de 24.
+- Búsqueda aplicada: `/?name=<término>&page=<n>`, más `&size=<n>` cuando difiere de 24; el buscador del header conserva el `size` activo (RF-27).
 - Sin término: `/?page=<n>` (el parámetro `name` se omite).
 - Los nombres de los parámetros de URL y los de la API se declaran por separado aunque coincidan hoy; son contratos distintos y no deben acoplarse.
 - El término se codifica con `URLSearchParams`, de modo que espacios, acentos y caracteres especiales viajen seguros.
@@ -257,6 +257,7 @@ Pruebas directas: transición `loading → success`, `loading → error`, `retry
 
 - Se renderiza dentro del `<header>` de `Layout`, entre la marca y `AccountSession`.
 - `<form role="search" aria-label="Buscar productos">`.
+- Header responsive: un único `header` con `flex flex-wrap` y `order` por breakpoint. En móvil el logo (`order-1`) y la cuenta (`order-2 ml-auto`) comparten la primera fila y el buscador (`order-3 w-full`) cae a la segunda; desde `sm` vuelven a una fila con `justify-between` y el buscador centrado con `flex-1` y `max-w-md`. `SignedInActions` y `GuestActions` muestran el botón como ícono (`LogOut`/`LogIn`, `size-11`) en móvil y con texto desde `sm`, siempre con `aria-label` («Salir»/«Entrar con Google»). `SessionNotice` se reduce a un ícono con texto `sr-only` en móvil (RF-28, RF-29, RF-30).
 - `<input type="search" name="name" maxLength={100} aria-label="Buscar productos por nombre" placeholder="Buscar productos">` no controlado. Se usa `defaultValue={normalizeCatalogSearchTerm(nameParam)}` y una `key` ligada a ese valor para sincronizar atrás/adelante sin estado por tecla.
 - Botón de envío `type="submit"` con el ícono `Search` de `lucide-react` y nombre accesible «Buscar».
 - `onSubmit` (Enter y lupa comparten el mismo camino):
@@ -291,14 +292,16 @@ Pruebas: render del formulario, envío con Enter, envío con la lupa, recorte a 
 3. Efecto de canonicalización cuando `shouldCanonicalizePage` es verdadero: `setSearchParams` con `replace: true`.
 4. `usePublishedProducts(name, page)` para la lectura.
 5. Detección de página fuera de rango durante el render: `success` con `page > totalPages`, o `totalPages === 0` con `page > 1`. Mientras el indicador sea verdadero se renderiza carga y un efecto reemplaza la URL con `page=1`; nunca se muestran los datos de la página ajustada por la API.
-6. Render de `<section aria-labelledby="storefront-products-title">` con `<h1 id="storefront-products-title">Productos</h1>` y uno de los estados.
+6. Render de `<section aria-label="Productos">` sin título visible y uno de los estados (RF-31).
 
 La grilla:
 
 - `<ul>` con `role="list"` y clases `grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6` dentro de un ancho máximo alineado con el escaparate actual, con 6 productos por fila en escritorio.
 - Cada `<li>` monta una `ProductCard` con `key={product.id}`.
 - Como máximo se muestran los productos del tamaño de página activo que devuelve la página (RF-3).
-- La paginación se muestra debajo de la grilla cuando hay más de una página.
+- Las herramientas del listado se agrupan en `CatalogToolbar`: una fila (`flex flex-nowrap items-end justify-between`) con `ProductPageSize` a la izquierda y `ProductGridPagination` a la derecha, cuando hay más de una página. No envuelve a los componentes en tarjetas ni les agrega fondo, borde o sombra (RF-33, RF-34). La barra se renderiza una sola vez, al inicio del listado, también durante los estados de carga, vacío y error.
+- `ProductPageSize` muestra la leyenda `Productos por página` por encima del control (RF-32): un botón `aria-haspopup="listbox"` con el tamaño activo y un `ChevronDown`, que abre un `role="listbox"` anclado debajo del botón con las opciones `CATALOG_PAGE_SIZE_OPTIONS` (12, 24, 48, 64 y 100). Se usa un listbox propio en lugar de un `<select>` nativo porque en móvil el popup del navegador aparecía desanclado. Navegación con teclado (Enter, Space, flechas, Escape), cierre al hacer clic afuera y opción activa marcada con `aria-selected`. Al elegir otra opción navega a `?name=<término>&page=1&size=<n>`, lo que recarga la grilla desde la página 1 (RF-25, RF-26).
+- `ProductGridPagination` muestra la leyenda `Página X de Y` encima de los controles y calcula cuántos números entran: un `ResizeObserver` sobre el `nav` mide el ancho disponible y el tamaño real del botón, y `resolveVisiblePageCount` devuelve la mayor cantidad impar que entra restando dos lugares para los `…`, acotada entre 5 y 9. Con eso arma siempre primera página, última página y una ventana alrededor de la activa, en un `<ul aria-label="Páginas">` con `flex-nowrap`: nunca pasa a dos filas y en escritorio llega a nueve pastillas. Si el número activo quedara fuera de vista, un efecto lo centra con `scrollIntoView`. Se oculta cuando hay una sola página (RF-35).
 
 `ProductCard`:
 

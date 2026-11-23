@@ -1,3 +1,4 @@
+import { LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 type SignedInActionsProps = {
@@ -25,18 +26,20 @@ export function SignedInActions({ name, onLogout }: SignedInActionsProps) {
   }
 
   return (
-    <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
-      <span className="text-sm font-semibold break-words">{name}</span>
+    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <span className="line-clamp-2 min-w-0 text-sm leading-tight font-semibold break-words">{name}</span>
       <button
         type="button"
-        className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-foreground bg-card px-4 text-sm font-bold text-foreground transition-colors duration-200 ease-out hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none sm:w-auto"
+        aria-label="Salir"
+        className="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-foreground bg-card text-sm font-bold text-foreground transition-colors duration-200 ease-out hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none sm:w-auto sm:px-4"
         onClick={() => {
           void handleLogoutClick();
         }}
         disabled={isLoggingOut}
         aria-busy={isLoggingOut}
       >
-        Salir
+        <LogOut aria-hidden="true" className="size-5" />
+        <span className="hidden sm:inline">Salir</span>
       </button>
     </div>
   );
