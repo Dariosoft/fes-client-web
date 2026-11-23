@@ -8,7 +8,7 @@ export function AccountSession() {
   const { status, account, notice, logout } = useAccountSession();
 
   return (
-    <div className="flex w-full flex-col items-stretch gap-3 sm:items-end">
+    <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
       {notice ? <SessionNotice notice={notice} /> : null}
       {status === SESSION_STATUS.authenticated && account ? (
         <SignedInActions name={account.name} onLogout={logout} />
