@@ -1,7 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import type { Publication } from '../../../shared/api/catalog/types';
+import type { CatalogLocation } from '../../../shared/lib/catalog-location/catalog-location';
 import { ProductGrid } from './ProductGrid';
+
+const catalogFrom: CatalogLocation = { name: 'silla', page: 3, size: 12 };
 
 function buildProducts(count: number): Publication[] {
   return Array.from({ length: count }, (_value, index) => ({
@@ -14,9 +19,33 @@ function buildProducts(count: number): Publication[] {
   }));
 }
 
+function LocationProbe() {
+  const location = useLocation();
+
+  return (
+    <p data-testid="destination">
+      {`${location.pathname}${location.search}|${JSON.stringify(location.state)}`}
+    </p>
+  );
+}
+
+function renderGrid(products: Publication[], size = 24) {
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <Routes>
+        <Route
+          path="/"
+          element={<ProductGrid products={products} size={size} from={catalogFrom} />}
+        />
+        <Route path="/publication/:id" element={<LocationProbe />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
 describe('ProductGrid', () => {
   it('renders one semantic list item per product', () => {
-    render(<ProductGrid products={buildProducts(3)} size={24} />);
+    renderGrid(buildProducts(3));
 
     const list = screen.getByRole('list');
 
@@ -26,7 +55,7 @@ describe('ProductGrid', () => {
   });
 
   it('renders at most the requested page size', () => {
-    render(<ProductGrid products={buildProducts(30)} size={24} />);
+    renderGrid(buildProducts(30));
 
     expect(screen.getAllByRole('listitem')).toHaveLength(24);
     expect(screen.getByRole('heading', { name: 'Producto 24' })).toBeInTheDocument();
@@ -34,14 +63,27 @@ describe('ProductGrid', () => {
   });
 
   it('renders every product when the page size covers them', () => {
-    render(<ProductGrid products={buildProducts(6)} size={100} />);
+    renderGrid(buildProducts(6), 100);
 
     expect(screen.getAllByRole('listitem')).toHaveLength(6);
   });
 
   it('renders an empty list without crashing', () => {
-    render(<ProductGrid products={[]} size={24} />);
+    renderGrid([]);
 
     expect(screen.getByRole('list')).toBeEmptyDOMElement();
+  });
+
+  it('propagates the catalog context to each card link', async () => {
+    const user = userEvent.setup();
+    renderGrid(buildProducts(2));
+
+    expect(screen.getAllByRole('link', { name: /Ver Producto/ })).toHaveLength(2);
+
+    await user.click(screen.getByRole('link', { name: 'Ver Producto 1' }));
+
+    expect(screen.getByTestId('destination')).toHaveTextContent(
+      '/publication/product-1|{"from":{"name":"silla","page":3,"size":12}}',
+    );
   });
 });

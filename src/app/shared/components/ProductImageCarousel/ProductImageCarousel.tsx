@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import type { ProductImage } from '../../../shared/api/catalog/types';
-import { buildCarouselPosition, STOREFRONT_COPY } from '../constants';
+import type { ProductImage } from '../../api/catalog/types';
+import { buildCarouselPosition, PRODUCT_IMAGE_CAROUSEL_COPY } from './constants';
 
 type ProductImageCarouselProps = {
   images: ProductImage[];
@@ -34,18 +34,18 @@ export function ProductImageCarousel({ images, productName }: ProductImageCarous
         <>
           <button
             type="button"
-            aria-label={STOREFRONT_COPY.previousImage}
+            aria-label={PRODUCT_IMAGE_CAROUSEL_COPY.previousImage}
             onClick={showPrevious}
-            className="absolute top-1/2 left-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border-2 border-border bg-card/90 text-foreground transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="absolute top-1/2 left-1 flex size-11 z-20 -translate-y-1/2 items-center justify-center rounded-full border-2 border-border bg-card/90 text-foreground transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <ChevronLeft aria-hidden="true" className="size-4" />
           </button>
 
           <button
             type="button"
-            aria-label={STOREFRONT_COPY.nextImage}
+            aria-label={PRODUCT_IMAGE_CAROUSEL_COPY.nextImage}
             onClick={showNext}
-            className="absolute top-1/2 right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border-2 border-border bg-card/90 text-foreground transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="absolute top-1/2 right-1 flex size-11 z-20 -translate-y-1/2 items-center justify-center rounded-full border-2 border-border bg-card/90 text-foreground transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <ChevronRight aria-hidden="true" className="size-4" />
           </button>

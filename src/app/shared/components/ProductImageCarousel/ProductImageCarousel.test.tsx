@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { ProductImage } from '../../../shared/api/catalog/types';
+import type { ProductImage } from '../../api/catalog/types';
 import { ProductImageCarousel } from './ProductImageCarousel';
 
 const images: ProductImage[] = [
@@ -29,6 +29,13 @@ describe('ProductImageCarousel', () => {
       'https://cdn.fes.test/front.webp',
     );
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
+  });
+
+  it('keeps navigation controls at a minimum 44px touch target', () => {
+    render(<ProductImageCarousel images={images} productName="Mate" />);
+
+    expect(screen.getByRole('button', { name: 'Foto anterior' })).toHaveClass('size-11');
+    expect(screen.getByRole('button', { name: 'Foto siguiente' })).toHaveClass('size-11');
   });
 
   it('advances and wraps around with the next and previous controls', () => {

@@ -1,5 +1,5 @@
 export const CATALOG_PATHS = {
-  publications: '/catalog/publication',
+  publication: '/catalog/publication',
 } as const;
 
 export const CATALOG_QUERY_PARAMS = {

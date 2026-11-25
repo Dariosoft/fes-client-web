@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  CATALOG_PAGE_SIZE,
-  CATALOG_SEARCH_PARAMS,
-} from '../../shared/config/catalog-search';
 import type { Publication } from '../../shared/api/catalog/types';
+import {
+  buildCatalogSearchParams,
+  type CatalogLocation,
+} from '../../shared/lib/catalog-location/catalog-location';
 import { STOREFRONT_COPY } from './constants';
 import { usePublications } from './hooks/use-publications/use-publications';
 import type { PublicationsState } from './hooks/use-publications/use-publications';
@@ -18,22 +18,6 @@ type StorefrontContent =
   | { kind: 'error' }
   | { kind: 'empty'; searchTerm: string }
   | { kind: 'grid'; products: Publication[]; totalPages: number };
-
-function createCatalogSearchParams(name: string, page: number, size: number): URLSearchParams {
-  const params = new URLSearchParams();
-
-  if (name !== '') {
-    params.set(CATALOG_SEARCH_PARAMS.name, name);
-  }
-
-  params.set(CATALOG_SEARCH_PARAMS.page, String(page));
-
-  if (size !== CATALOG_PAGE_SIZE) {
-    params.set(CATALOG_SEARCH_PARAMS.size, String(size));
-  }
-
-  return params;
-}
 
 function resolveContent(
   state: PublicationsState,
@@ -64,21 +48,22 @@ export function Storefront() {
     state.status === 'success' && (totalPages === 0 ? page > 1 : page > totalPages);
   const shouldShowLoading = shouldCanonicalizeSearch || isPageOutOfRange;
   const content = resolveContent(state, name, shouldShowLoading);
+  const from: CatalogLocation = { name, page, size };
 
   useEffect(() => {
     if (!shouldShowLoading) {
       return;
     }
 
-    void setSearchParams(createCatalogSearchParams(name, 1, size), { replace: true });
+    void setSearchParams(buildCatalogSearchParams({ name, page: 1, size }), { replace: true });
   }, [shouldShowLoading, name, size, setSearchParams]);
 
   function handleSelectPage(nextPage: number) {
-    void setSearchParams(createCatalogSearchParams(name, nextPage, size));
+    void setSearchParams(buildCatalogSearchParams({ name, page: nextPage, size }));
   }
 
   function handleSelectSize(nextSize: number) {
-    void setSearchParams(createCatalogSearchParams(name, 1, nextSize));
+    void setSearchParams(buildCatalogSearchParams({ name, page: 1, size: nextSize }));
   }
 
   const paginationProps =
@@ -101,7 +86,9 @@ export function Storefront() {
         {content.kind === 'empty' ? (
           <ProductGridStatus status="empty" searchTerm={content.searchTerm} />
         ) : null}
-        {content.kind === 'grid' ? <ProductGrid products={content.products} size={size} /> : null}
+        {content.kind === 'grid' ? (
+          <ProductGrid products={content.products} size={size} from={from} />
+        ) : null}
       </div>
     </section>
   );

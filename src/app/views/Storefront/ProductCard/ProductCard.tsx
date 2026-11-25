@@ -1,20 +1,32 @@
 import { ImageOff } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { Link } from 'react-router-dom';
 import type { Publication } from '../../../shared/api/catalog/types';
+import { ProductImageCarousel } from '../../../shared/components/ProductImageCarousel/ProductImageCarousel';
+import type { CatalogLocation } from '../../../shared/lib/catalog-location/catalog-location';
+import { formatPrice } from '../../../shared/lib/format-price/format-price';
 import { STOREFRONT_COPY } from '../constants';
-import { formatPrice } from '../lib/format-price/format-price';
-import { ProductImageCarousel } from '../ProductImageCarousel/ProductImageCarousel';
 
 type ProductCardProps = {
   product: Publication;
+  from: CatalogLocation;
 };
+
+function activateWithSpace(event: KeyboardEvent<HTMLAnchorElement>) {
+  if (event.key !== ' ') {
+    return;
+  }
+
+  event.preventDefault();
+  event.currentTarget.click();
+}
 
 const SCROLL_PIXELS_PER_SECOND = 60;
 
 const NAME_FADE_CLASS =
   '[mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)]';
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, from }: ProductCardProps) {
   const titleId = useId();
   const nameRef = useRef<HTMLSpanElement>(null);
   const [nameOffset, setNameOffset] = useState(0);
@@ -56,16 +68,18 @@ export function ProductCard({ product }: ProductCardProps) {
       aria-labelledby={titleId}
       onMouseEnter={() => setRevealsName(true)}
       onMouseLeave={() => setRevealsName(false)}
-      className="flex h-full flex-col gap-2 rounded-2xl border-2 border-border bg-card p-2 transition-colors duration-200 ease-out hover:border-primary motion-reduce:transition-none sm:gap-3 sm:p-3"
+      className="relative flex h-full flex-col gap-2 rounded-2xl border-2 border-border bg-card p-2 transition-colors duration-200 ease-out hover:border-primary motion-reduce:transition-none sm:gap-3 sm:p-3"
     >
-      {product.images.length > 0 ? (
-        <ProductImageCarousel images={product.images} productName={product.name} />
-      ) : (
-        <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl bg-muted text-muted-foreground">
-          <ImageOff aria-hidden="true" className="size-10" />
-          <span className="sr-only">{STOREFRONT_COPY.missingImage}</span>
-        </div>
-      )}
+      <div className="relative">
+        {product.images.length > 0 ? (
+          <ProductImageCarousel images={product.images} productName={product.name} />
+        ) : (
+          <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl bg-muted text-muted-foreground">
+            <ImageOff aria-hidden="true" className="size-10" />
+            <span className="sr-only">{STOREFRONT_COPY.missingImage}</span>
+          </div>
+        )}
+      </div>
 
       <h2
         id={titleId}
@@ -90,6 +104,14 @@ export function ProductCard({ product }: ProductCardProps) {
       <p className="mt-auto font-display text-base font-bold text-foreground sm:text-lg">
         {formatPrice(product.price, product.currency)}
       </p>
+
+      <Link
+        to={`/publication/${encodeURIComponent(product.id)}`}
+        state={{ from }}
+        aria-label={`Ver ${product.name}`}
+        onKeyDown={activateWithSpace}
+        className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      />
     </article>
   );
 }
