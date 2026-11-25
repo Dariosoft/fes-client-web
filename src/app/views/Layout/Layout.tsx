@@ -5,7 +5,7 @@ import { ProductSearch } from './ProductSearch/ProductSearch';
 export function Layout() {
   return (
     <div className="min-h-dvh bg-background font-sans text-foreground">
-      <header className="sticky top-0 z-20 grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-center gap-x-3 gap-y-3 border-b-4 border-foreground bg-card px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between md:px-8">
+      <header className="sticky top-0 z-50 grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-center gap-x-3 gap-y-3 border-b-4 border-foreground bg-card px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between md:px-8">
         <div className="flex min-w-0 items-center gap-2 sm:order-1 sm:gap-3">
           <img className="size-11 shrink-0" src="/favicon.svg" alt="" aria-hidden="true" />
           <p className="min-w-0 truncate font-display text-sm font-semibold tracking-tight text-primary sm:text-lg">
