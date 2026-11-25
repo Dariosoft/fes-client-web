@@ -51,7 +51,7 @@ function isPublicationsResponse(value: unknown): value is PublicationsResponse {
 export async function getPublications(
   input: GetPublicationsInput,
 ): Promise<PublicationsResponse> {
-  const url = new URL(`${getApiBaseUrl()}${CATALOG_PATHS.publications}`);
+  const url = new URL(`${getApiBaseUrl()}${CATALOG_PATHS.publication}`);
 
   if (input.name !== '') {
     url.searchParams.set(CATALOG_QUERY_PARAMS.name, input.name);

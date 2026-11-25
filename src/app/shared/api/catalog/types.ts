@@ -12,6 +12,17 @@ export type Publication = {
   images: ProductImage[];
 };
 
+export type PublicationDetail = {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  stock: number | null;
+  description: string | null;
+  sellerAccountId: string;
+  images: ProductImage[];
+};
+
 export type PublicationsResponse = {
   items: Publication[];
   page: number;

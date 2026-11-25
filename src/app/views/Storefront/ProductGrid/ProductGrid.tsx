@@ -1,12 +1,14 @@
 import type { Publication } from '../../../shared/api/catalog/types';
+import type { CatalogLocation } from '../../../shared/lib/catalog-location/catalog-location';
 import { ProductCard } from '../ProductCard/ProductCard';
 
 type ProductGridProps = {
   products: Publication[];
   size: number;
+  from: CatalogLocation;
 };
 
-export function ProductGrid({ products, size }: ProductGridProps) {
+export function ProductGrid({ products, size, from }: ProductGridProps) {
   const pageProducts = products.slice(0, size);
 
   return (
@@ -16,7 +18,7 @@ export function ProductGrid({ products, size }: ProductGridProps) {
     >
       {pageProducts.map((product) => (
         <li key={product.id}>
-          <ProductCard product={product} />
+          <ProductCard product={product} from={from} />
         </li>
       ))}
     </ul>
